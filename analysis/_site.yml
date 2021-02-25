@@ -1,17 +1,17 @@
-name: "emlr_mod_analysis"
+name: Cant_eMLR
 output_dir: ../docs
 navbar:
-  title: "emlr_mod_analysis"
-  left:
-  - text: Home
-    href: index.html
-  - text: About
-    href: about.html
-  - text: License
-    href: license.html
+  title: eMLR mod analysis
+  right:
+  - icon: fa-github
+    text: Source code
+    href: https://github.com/jens-daniel-mueller/emlr_mod_analysis
 output:
   workflowr::wflow_html:
     toc: yes
-    toc_float: yes
-    theme: cosmo
+    toc_float:
+      collapsed: no
+    toc_depth: 3
+    theme: flatly
+    code_folding: hide
     highlight: textmate
