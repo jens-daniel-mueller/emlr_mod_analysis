@@ -2,6 +2,15 @@ name: Cant_eMLR
 output_dir: ../docs
 navbar:
   title: eMLR mod analysis
+  left:
+  - text: Config
+    menu:
+    - text: Dependencies
+      href: config_dependencies.html
+  - text: Analysis
+    menu:
+    - text: Zonal mean sections
+      href: analysis_zonal_mean_sections.html
   right:
   - icon: fa-github
     text: Source code
