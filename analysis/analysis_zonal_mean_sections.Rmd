@@ -1,0 +1,40 @@
+---
+title: "Zonal mean sections"
+author: "Jens Daniel Müller and Donghe Zhu"
+date:  "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  workflowr::wflow_html:
+    number_sections: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+editor_options:
+  chunk_output_type: console
+---
+
+```{r parent, child = "/nfs/kryo/work/jenmueller/emlr_cant/utilities/setup.Rmd"}
+# this chunk runs the code stored in setup.Rmd
+# if required, please refer to instructions given here:
+# https://jdblischak.github.io/workflowr/articles/wflow-07-common-code.html
+```
+
+```{r read_params_local, include = FALSE}
+params_local <-
+  read_rds(here::here("data/auxillary",
+                       "params_local.rds"))
+
+```
+
+```{r define_paths, include = FALSE}
+
+path_model <-
+  paste(path_root, "/model/", sep = "")
+
+```
+
+
+```{r load_libraries_specific, include = FALSE}
+
+```
+
+# Data sources

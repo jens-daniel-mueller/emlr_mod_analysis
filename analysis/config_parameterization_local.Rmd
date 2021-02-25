@@ -1,0 +1,63 @@
+---
+title: "Parameterization"
+author: "Jens Daniel Müller and Donghe Zhu"
+date:  "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  workflowr::wflow_html:
+    number_sections: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+editor_options:
+  chunk_output_type: console
+---
+
+```{r global_options, include = FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+```
+
+```{r library, include=FALSE}
+library(tidyverse)
+```
+
+
+# Definition
+
+The following local parametrisations (i.e. relevant for this sensitivity run) were defined to run the analysis:
+
+```{r define_params_local, class.source = 'fold-show'}
+
+params_local <-
+  lst(
+    # ID for analysis
+    Version_ID = "analysis",
+    # test parameter
+    acitve = "yes"
+  )
+
+```
+
+# Write file
+
+Parameterization criteria are locally stored and used throughout this sensitivty case.
+
+```{r write_params_local}
+
+params_local %>%
+  write_rds(here::here("data/auxillary",
+                       "params_local.rds"))
+
+
+```
+
+# Create folders
+
+Folders for each new sensitivity run are automatically created.
+
+```{r create_folder_structure, include=FALSE}
+
+path_root           <- "/nfs/kryo/work/jenmueller/emlr_cant/model"
+dir.create(paste(path_root, params_local$Version_ID, sep = "/"))
+dir.create(paste(path_root, params_local$Version_ID, "figures", sep = "/"))
+
+```
