@@ -33,11 +33,13 @@ path_preprocessing    <-
   paste(path_model, "preprocessing/", sep = "")
 
 params_local     <-
-  read_rds(paste("/home/donzhu/Thesis/emlr_cant/model/emlr_mod_",
-        Version_ID,
-        "/data/auxillary/",
-        "params_local.rds",
-        sep = ""))
+  read_rds(
+    paste(
+      "/home/donzhu/Thesis/emlr_cant/model/emlr_mod_v_118/data/auxillary/",
+      "params_local.rds",
+      sep = ""
+    )
+  )
 
 path_version_data     <-
   paste(path_model,
@@ -402,12 +404,13 @@ i_basin_AIP <- "Pacific"
 
 ```
 
+
+
 # Residual with latitude
 
 ```{r cant_residual_latitude}
 
 b_cstar_tref <- function(df) {
-  
   df <- df %>%
     mutate(cstar_tref_intercept = `coeff_(Intercept)`)
   
@@ -428,100 +431,116 @@ b_cstar_tref <- function(df) {
   
   #df <- df %>%
   #  mutate(cant_pos = if_else(cant < 0, 0, cant))
-
+  
   return(df)
-
+  
 }
 
 lm_best_target <- read_csv(paste(path_version_data,
-                  "lm_best_target.csv",
-                  sep = ""))
+                                 "lm_best_target.csv",
+                                 sep = ""))
 
 GLODAP <-
-  read_csv(paste(path_version_data,
-                 "GLODAPv2.2020_MLR_fitting_ready.csv",
-                 sep = ""))
+  read_csv(paste(
+    path_version_data,
+    "GLODAPv2.2020_MLR_fitting_ready.csv",
+    sep = ""
+  ))
 
 GLODAP <- GLODAP %>%
-  select(lon, lat, depth, era, basin_AIP, basin, gamma, gamma_slab, sal, temp, aou, nitrate, silicate, phosphate, phosphate_star, cstar_tref)
+  select(
+    lon,
+    lat,
+    depth,
+    era,
+    basin_AIP,
+    basin,
+    gamma,
+    gamma_slab,
+    sal,
+    temp,
+    aou,
+    nitrate,
+    silicate,
+    phosphate,
+    phosphate_star,
+    cstar_tref
+  )
 
 
 # mutate predictors column
-  lm_best_plot <- lm_best_target %>%
-    mutate(
-      predictors = str_remove(model, paste(params_local$MLR_target, "~ ")),
-      predictors = str_replace_all(predictors, "\\+ ", "")
-    )
-  
-  # loop across all basins, era, gamma slabs, and MLRs
-  # fit all MLR models
-  for (i_basin in unique(GLODAP$basin)) {
-    for (i_era in unique(GLODAP$era)) {
-      i_basin <- unique(GLODAP$basin)[2]
-      i_era   <- unique(GLODAP$era)[1]
-      print(i_basin)
-      print(i_era)
-      
-      GLODAP_basin_era <- GLODAP %>%
-        filter(basin == i_basin, era == i_era)
-      
-      for (i_gamma_slab in unique(GLODAP_basin_era$gamma_slab)) {
-        i_gamma_slab <- unique(GLODAP_basin_era$gamma_slab)[4]
-        print(i_gamma_slab)
-        
-        GLODAP_basin_era_slab <- GLODAP_basin_era %>%
-          filter(gamma_slab == i_gamma_slab)
-        
-        lm_best_basin_era_slab <- lm_best_plot %>%
-          filter(basin == i_basin, era == i_era, gamma_slab == i_gamma_slab)
-        
-        for (i_eras in unique(lm_best_basin_era_slab$eras)) {
-          i_eras <- unique(lm_best_basin_era_slab$eras)[1]
-          print(i_eras)
-          
-          lm_best_basin_era_slab_eras <- lm_best_basin_era_slab %>%
-            filter(eras == i_eras)
-          
-          cstar_tref <- full_join(GLODAP_basin_era_slab, lm_best_basin_era_slab_eras)
-          
-          for (i_predictors in unique(lm_best_basin_era_slab_eras$predictors)) {
-            i_predictors <- unique(lm_best_basin_era_slab$predictors)[1]
-            print(i_predictors)
-            
-            cstar_tref1 <- b_cstar_tref(cstar_tref) %>%
-              mutate(cstar_tref_residual = cstar_tref - cstar_tref_fitted)
-            
-              
-              
-              residual <-
-              ggplot(cstar_tref1, aes(lat, cstar_tref_residual)) +
-              geom_bin2d(binwidth = 1) +
-              scale_fill_viridis_c(option = "magma",
+lm_best_plot <- lm_best_target %>%
+  mutate(predictors = str_remove(model, paste(params_local$MLR_target, "~ ")),
+         predictors = str_replace_all(predictors, "\\+ ", ""))
+
+# loop across all basins, era, gamma slabs, and MLRs
+# fit all MLR models
+#  for (i_basin in unique(GLODAP$basin)) {
+#    for (i_era in unique(GLODAP$era)) {
+i_basin <- unique(GLODAP$basin)[2]
+i_era   <- unique(GLODAP$era)[1]
+print(i_basin)
+print(i_era)
+
+GLODAP_basin_era <- GLODAP %>%
+  filter(basin == i_basin, era == i_era)
+
+#      for (i_gamma_slab in unique(GLODAP_basin_era$gamma_slab)) {
+i_gamma_slab <- unique(GLODAP_basin_era$gamma_slab)[4]
+print(i_gamma_slab)
+
+GLODAP_basin_era_slab <- GLODAP_basin_era %>%
+  filter(gamma_slab == i_gamma_slab)
+
+lm_best_basin_era_slab <- lm_best_plot %>%
+  filter(basin == i_basin, era == i_era, gamma_slab == i_gamma_slab)
+
+#       for (i_eras in unique(lm_best_basin_era_slab$eras)) {
+i_eras <- unique(lm_best_basin_era_slab$eras)[1]
+print(i_eras)
+
+lm_best_basin_era_slab_eras <- lm_best_basin_era_slab %>%
+  filter(eras == i_eras)
+
+cstar_tref <-
+  full_join(GLODAP_basin_era_slab, lm_best_basin_era_slab_eras)
+
+#          for (i_predictors in unique(lm_best_basin_era_slab_eras$predictors)) {
+i_predictors <-
+  unique(lm_best_basin_era_slab$predictors)[1]
+print(i_predictors)
+
+cstar_tref <- b_cstar_tref(cstar_tref) %>%
+  mutate(cstar_tref_residual = cstar_tref - cstar_tref_fitted)
+
+residual <-
+  ggplot(cstar_tref, aes(lat, cstar_tref_residual)) +
+  geom_bin2d(binwidth = 1) +
+  scale_fill_viridis_c(option = "magma",
                        direction = -1,
                        trans = "log10") +
-              facet_wrap( ~ predictors, ncol = 2) +
-                labs(x = expression(latitude~(degree*N)), y = expression(C[t[ref]]^"*"~residual),
-                     subtitle = "Eras: 1982-1999 --> 2000-2012  Era: 1982-1999")
-                
-        
-              
+  facet_wrap(~ predictors, ncol = 2) +
+  labs(
+    x = expression(latitude ~ (degree * N)),
+    y = expression(C[t[ref]] ^ "*" ~ residual),
+    subtitle = "Eras: 1982-1999 --> 2000-2012  Era: 1982-1999"
+  )
 
-            ggsave(
-              plot = residual,
-              filename = "residual.png",
-              width = 7,
-              height = 9
-            )
+ggsave(
+  plot = residual,
+  filename = "residual.png",
+  width = 7,
+  height = 9
+)
 
-            rm(p_model)
-            
-          }
-          
-        }
-        
-      }
-    }
-  }
+  #           
+  #         }
+  #         
+  #       }
+  #       
+  #     }
+  #   }
+  # }
 
 
 ```
