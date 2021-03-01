@@ -109,14 +109,14 @@ for (i_year in years) {
   
   print(
     map +
-      geom_bin2d(data = standard,
+      geom_bin2d(data = standard_year,
                  aes(lon, lat),
                  binwidth = 1) +
       scale_fill_viridis_c(direction = -1) +
       coord_quickmap(expand = 0) +
       labs(
         title = paste("Standard subsetting"),
-        subtitle = paste("Nr of observations", nrow(standard)),
+        subtitle = paste("Nr of observations", nrow(standard_year)),
         x = "Longitude",
         y = "Latitude"
       )
