@@ -14,11 +14,11 @@ wflow_publish(here::here(
   "analysis",
   c(
     "index.Rmd",
-    "config_parameterization_local.Rmd",
-    "analysis_zonal_mean_sections.Rmd"
+    "preprocessing.Rmd",
+    "emlr.Rmd"
   )
 ),
-message = "added first Rmd files",
+message = "plot for thesis",
 republish = TRUE)
 
 
