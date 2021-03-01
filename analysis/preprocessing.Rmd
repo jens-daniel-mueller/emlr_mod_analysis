@@ -63,7 +63,7 @@ resample_lat <-
                  sep = ""))
 
 # plot random sampling cmorized grids in each year
-i_year <- "2000"
+#i_year <- "2000"
 years <- c("1982", "1990", "2000", "2010", "2019")
 for (i_year in years) {
   # i_year <- years[1]
@@ -99,7 +99,7 @@ standard <-
                  sep = ""))
 
 # plot random sampling cmorized grids in each year
-i_year <- "2000"
+#i_year <- "2000"
 years <- c("1982", "1990", "2000", "2010", "2019")
 for (i_year in years) {
   # i_year <- years[1]
