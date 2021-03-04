@@ -35,6 +35,45 @@ library(gsw)
 library(marelac)
 ```
 
+# Distribution of GLODAP observations in the pre- and post-2010 era
+
+```{r GLODAP_distribution_maps}
+
+GLODAP <-
+  read_csv(paste(path_GLODAP_preprocessing,
+                 "GLODAPv2.2020_preprocessed.csv",
+                 sep = ""))
+
+section <- map + 
+  scale_fill_viridis_c(direction = -1) +
+      coord_quickmap(expand = 0) +
+  guides()
+  
+
+a <- section +
+      geom_bin2d(data = GLODAP %>% filter(year <= 2010),
+                 aes(lon, lat),
+                 binwidth = 1) +
+      labs(
+        subtitle = paste("Nr of observations:", nrow(GLODAP %>% filter(year <= 2010))),
+        x = "Longitude",
+        y = "Latitude"
+      )
+
+b <- section +
+      geom_bin2d(data = GLODAP %>% filter(year > 2010),
+                 aes(lon, lat),
+                 binwidth = 1) +
+      labs(
+        subtitle = paste("Nr of observations:", nrow(GLODAP %>% filter(year > 2010))),
+        x = "Longitude",
+        y = "Latitude"
+      )
+
+a / b +
+  plot_layout(guides = "collect")
+
+```
 
 # Randomly subset model data
 
@@ -125,4 +164,5 @@ for (i_year in years) {
 }
 
 ```
+
 
