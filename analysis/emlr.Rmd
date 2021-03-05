@@ -20,7 +20,7 @@ editor_options:
 
 ```{r read_params_local, include = FALSE}
 
-Version_ID <- "v_XXX_118"
+Version_ID <- "v_XXX_140"
 
 ```
 
@@ -477,8 +477,8 @@ lm_best_plot <- lm_best_target %>%
 # fit all MLR models
 #  for (i_basin in unique(GLODAP$basin)) {
 #    for (i_era in unique(GLODAP$era)) {
-i_basin <- unique(GLODAP$basin)[2]
-i_era   <- unique(GLODAP$era)[1]
+i_basin <- unique(GLODAP$basin)[1]
+i_era   <- unique(GLODAP$era)[2]
 print(i_basin)
 print(i_era)
 
@@ -524,7 +524,7 @@ residual <-
   labs(
     x = expression(latitude ~ (degree * N)),
     y = expression(C[t[ref]] ^ "*" ~ residual),
-    subtitle = "Eras: 1982-1999 --> 2000-2012  Era: 1982-1999"
+    subtitle = "Era: 2000-2012"
   )
 
 residual
