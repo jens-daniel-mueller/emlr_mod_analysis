@@ -20,7 +20,7 @@ editor_options:
 
 ```{r read_params_local, include = FALSE}
 
-Version_ID <- "v_XXX_140"
+Version_ID <- "v_XXX_118_Gruber"
 
 ```
 
@@ -35,7 +35,7 @@ path_preprocessing    <-
 params_local     <-
   read_rds(
     paste(
-      "/home/donzhu/Thesis/emlr_cant/model/emlr_mod_v_118/data/auxillary/",
+      "/home/donzhu/Thesis/emlr_cant/model/emlr_mod_v_XXX/data/auxillary/",
       "params_local.rds",
       sep = ""
     )
@@ -52,6 +52,7 @@ path_version_figures  <-
         Version_ID,
         "/figures/",
         sep = "")
+
 ```
 
 
@@ -155,12 +156,12 @@ section <- map +
 a <- section +
   geom_raster(data = df1,
               aes(lon, lat, fill = var_int)) +
-  labs(subtitle = "eMLR reconstruction")
+  labs(subtitle = "(a) eMLR reconstruction")
 
 b <- section +
   geom_raster(data = df2,
               aes(lon, lat, fill = var_int)) +
-  labs(subtitle = "Model truth")
+  labs(subtitle = "(b) Model truth")
 
 a / b +
   plot_layout(guides = "collect")
@@ -172,7 +173,7 @@ a / b +
       cant_inv_wide %>% filter(eras == i_eras),
       "cant_pos_inv_offset",
       title_text = "",
-      subtitle_text = "Offset"
+      subtitle_text = "(c) Offset"
     )
 #  )
 #}
@@ -366,7 +367,7 @@ i_basin_AIP <- "Pacific"
             ),
           var = "cant_pos_mean",
           title_text = "",
-          subtitle_text = "eMLR reconstruction",
+          subtitle_text = "(a) eMLR reconstruction",
         )
     a
    
@@ -379,7 +380,7 @@ i_basin_AIP <- "Pacific"
             ),
           var = "cant_pos_mean",
           title_text = "",
-          subtitle_text = "Model truth"
+          subtitle_text = "(b) Model truth"
         )
     
      b
@@ -398,7 +399,7 @@ i_basin_AIP <- "Pacific"
         breaks = params_global$breaks_cant_offset,
         col = "divergent",
         title_text = "",
-        subtitle_text = "Offset")
+        subtitle_text = "(c) Offset")
     #  )
    # )
 
@@ -460,7 +461,8 @@ GLODAP <- GLODAP %>%
     sal,
     temp,
     aou,
-    nitrate,
+    oxygen,
+   # nitrate,
     silicate,
     phosphate,
     phosphate_star,
@@ -477,7 +479,7 @@ lm_best_plot <- lm_best_target %>%
 # fit all MLR models
 #  for (i_basin in unique(GLODAP$basin)) {
 #    for (i_era in unique(GLODAP$era)) {
-i_basin <- unique(GLODAP$basin)[1]
+i_basin <- unique(GLODAP$basin)[2]
 i_era   <- unique(GLODAP$era)[2]
 print(i_basin)
 print(i_era)
@@ -524,10 +526,17 @@ residual <-
   labs(
     x = expression(latitude ~ (degree * N)),
     y = expression(C[t[ref]] ^ "*" ~ residual),
-    subtitle = "Era: 2000-2012"
+    subtitle = "(c) Era: 1982-1999"
   )
 
 residual
+
+# calculate mean residual -35~-40
+cstar_tref1 <- cstar_tref %>%
+  filter(lat >= -40) %>%
+  filter(lat <= -35) 
+
+mean(cstar_tref1$cstar_tref_residual)
 
 # ggsave(
 #   plot = residual,
