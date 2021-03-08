@@ -1,0 +1,168 @@
+---
+title: "Random subset variable A"
+author: "Jens Daniel Müller"
+date:  "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  workflowr::wflow_html:
+    number_sections: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+editor_options:
+  chunk_output_type: console
+---
+
+```{r parent, child = "/nfs/kryo/work/jenmueller/emlr_cant/utilities/setup.Rmd"}
+# this chunk runs the code stored in setup.Rmd
+# if required, please refer to instructions given here:
+# https://jdblischak.github.io/workflowr/articles/wflow-07-common-code.html
+```
+
+```{r define_paths}
+path_GLODAP_preprocessing <-
+  paste(path_root, "/observations/preprocessing/", sep = "")
+path_cmorized <-
+  "/nfs/kryo/work/loher/CESM_output/RECCAP2/cmorized_Dec2020/split_monthly/"
+path_preprocessing  <-
+  paste(path_root, "/model/preprocessing/", sep = "")
+```
+
+```{r load_libraries_specific, include=FALSE}
+library(stars)
+library(lubridate)
+library(rqdatatable)
+library(gsw)
+library(marelac)
+```
+
+# Distribution of GLODAP observations in the pre- and post-2010 era
+
+```{r GLODAP_distribution_maps}
+
+GLODAP <-
+  read_csv(paste(path_GLODAP_preprocessing,
+                 "GLODAPv2.2020_preprocessed.csv",
+                 sep = ""))
+
+section <- map + 
+  scale_fill_viridis_c(direction = -1) +
+      coord_quickmap(expand = 0) +
+  guides()
+  
+
+a <- section +
+      geom_bin2d(data = GLODAP %>% filter(year <= 2010),
+                 aes(lon, lat),
+                 binwidth = 1) +
+      labs(
+        subtitle = paste("Nr of observations:", nrow(GLODAP %>% filter(year <= 2010))),
+        x = "Longitude",
+        y = "Latitude"
+      )
+
+b <- section +
+      geom_bin2d(data = GLODAP %>% filter(year > 2010),
+                 aes(lon, lat),
+                 binwidth = 1) +
+      labs(
+        subtitle = paste("Nr of observations:", nrow(GLODAP %>% filter(year > 2010))),
+        x = "Longitude",
+        y = "Latitude"
+      )
+
+a / b +
+  plot_layout(guides = "collect")
+
+```
+
+# Randomly subset model data
+
+Here we randomly subset cmorized (1x1) model with variable forcing, according to the total number of GLODAP observations for the whole period from a previously cleaned file. The number for the annual subset remains the same for each year, which could be expressed by the total number of observations divided by number of years.
+
+Besides, Model results are given in [mol m^-3^], whereas GLODAP data are in [µmol kg^-1^]. This refers to the variables:
+
+- DIC  
+- ALK  
+- O2  
+- NO3  
+- PO4  
+- SiO3  
+- AOU (calculated)
+
+For comparison, model results were converted from [mol m^-3^] to [µmol kg^-1^]
+
+# Spatial distribution
+
+```{r random_resample_distribution_maps}
+
+# read in random model sampling file
+resample_lat <-
+  read_csv(paste(path_preprocessing,
+                 "GLODAPv2.2020_preprocessed_model_runA_random_subset_lat.csv",
+                 sep = ""))
+
+# plot random sampling cmorized grids in each year
+#i_year <- "2000"
+years <- c("1982", "1990", "2000", "2010", "2019")
+for (i_year in years) {
+  # i_year <- years[1]
+  
+  resample_lat_year <- resample_lat %>%
+    filter(year == i_year)
+  
+  print(
+    map +
+      geom_bin2d(data = resample_lat_year,
+                 aes(lon, lat),
+                 binwidth = 1) +
+      scale_fill_viridis_c(direction = -1) +
+      coord_quickmap(expand = 0) +
+      labs(
+        title = paste("Random subsetting with latitudinal rarefaction of year", i_year),
+        subtitle = paste("Nr of observations", nrow(resample_lat_year)),
+        x = "Longitude",
+        y = "Latitude"
+      )
+  )
+
+}
+
+```
+
+```{r standard_resample_distribution_maps}
+
+# read in random model sampling file
+standard <-
+  read_csv(paste(path_preprocessing,
+                 "GLODAPv2.2020_preprocessed_model_runA_final.csv",
+                 sep = ""))
+
+# plot random sampling cmorized grids in each year
+#i_year <- "2000"
+years <- c("1982", "1990", "2000", "2010", "2019")
+for (i_year in years) {
+  # i_year <- years[1]
+  
+  standard_year <- standard %>%
+    filter(year == i_year)
+  
+  print(
+    map +
+      geom_bin2d(data = standard_year,
+                 aes(lon, lat),
+                 binwidth = 1) +
+      scale_fill_viridis_c(direction = -1) +
+      coord_quickmap(expand = 0) +
+      labs(
+        title = paste("Standard subsetting"),
+        subtitle = paste("Nr of observations", nrow(standard_year)),
+        x = "Longitude",
+        y = "Latitude"
+      )
+  )
+
+}
+
+```
+
+
