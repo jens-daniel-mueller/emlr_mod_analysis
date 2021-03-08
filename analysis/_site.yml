@@ -5,8 +5,8 @@ navbar:
   left:
   - text: Config
     menu:
-    - text: Dependencies
-      href: config_dependencies.html
+    - text: Parameterization
+      href: config_parameterization_local.html
   - text: Analysis
     menu:
     - text: Zonal mean sections
