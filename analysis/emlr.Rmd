@@ -67,7 +67,7 @@ library(gt)
 
 ## Cant - positive only
 
-```{r read_cant_inv_file, eval=FALSE}}
+```{r read_cant_inv_file, eval=FALSE}
 
 cant_inv_JDM <-
   read_csv(paste(path_version_data,
@@ -80,7 +80,7 @@ cant_inv_M <-
 
 ```
 
-```{r join_M_and_JDM_inventories, eval=FALSE}}
+```{r join_M_and_JDM_inventories, eval=FALSE}
 
 # add estimate label
 cant_inv_long <- bind_rows(cant_inv_JDM %>%  mutate(estimate = "JDM"),
@@ -108,7 +108,7 @@ cant_inv_wide <- cant_inv_wide %>%
 
 ```
 
-```{r cant_pos_inventory_map, fig.asp=0.5, eval=FALSE}}
+```{r cant_pos_inventory_map, fig.asp=0.5, eval=FALSE}
 
 #for (i_eras in unique(cant_inv_long$eras)) {
 #  for (i_estimate in unique(cant_inv_long$estimate)) {
@@ -185,7 +185,7 @@ a / b +
 
 ## Cant - positive only
 
-```{r read_cant_zonal_file, eval=FALSE}}
+```{r read_cant_zonal_file, eval=FALSE}
 
 cant_zonal_JDM <-
   read_csv(paste(path_version_data,
@@ -209,7 +209,7 @@ cant_zonal_M <-
 
 ```
 
-```{r join_cant_zonal, eval=FALSE}}
+```{r join_cant_zonal, eval=FALSE}
 
 cant_zonal_JDM_gamma <- cant_zonal_JDM %>%
   select(lat, depth, eras, basin_AIP, gamma_mean)
@@ -237,7 +237,7 @@ cant_zonal_wide <- cant_zonal_wide %>%
 
 ```
 
-```{r cant_pos_zonal_mean_section, fig.asp=0.6, eval=FALSE}}
+```{r cant_pos_zonal_mean_section, fig.asp=0.6, eval=FALSE}
 
 library(patchwork)
 i_eras <- "1982-1999 --> 2000-2012"
@@ -409,7 +409,7 @@ i_basin_AIP <- "Indian"
 
 # Residual with latitude
 
-```{r cant_residual_latitude, eval=FALSE}}
+```{r cant_residual_latitude, eval=FALSE}
 
 b_cstar_tref <- function(df) {
   df <- df %>%
