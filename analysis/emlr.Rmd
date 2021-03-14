@@ -723,6 +723,7 @@ boxplot(
 
 ```{r bias_rmse}
 
+# read in required files
 predictors <-
   read_csv(paste(path_version_data,
                  "predictors_M2007.csv",
@@ -791,43 +792,55 @@ cant_bias_slab <- cant_bias %>%
   summarise(cant_pos_bias = sum(cant_pos_bias_grid)) %>%
   ungroup()
 
-ggplot(data = cant_bias_slab %>%
-         filter(eras == unique(cant_bias_slab$eras)[2]),
+# plot for bias with rmse
+ggplot(data = cant_bias_slab,
        aes(rmse_mean, cant_pos_bias, col = gamma_slab)) +
   geom_point() +
   scale_color_viridis_d(name = "Gamma slabs") +
   guides(col = guide_legend(ncol = 2)) +
   theme(legend.title = element_text(size = 9),
         legend.text = element_text(size = 6.5),
-    legend.position = c(0.84, 0.65),
+    legend.position = c(0.84, 0.81),
         legend.key.size = unit(0.3, "cm"),
         legend.key.width = unit(0.2,"cm"),
         legend.background = element_rect(fill = "lightgray")) +
   xlim(0, 7) +
-  ylim(0, 1) +
+#  ylim(0, 1) +
+  facet_grid(basin ~ eras) +
   labs(
-    subtitle = paste("Eras:", unique(cant_bias_slab$eras)[2]),
     x = expression(RMSE ~ (mu * mol ~ kg ^ "-1")),
     y = "Bias (Pg C)"
   )
 
-ggplot(data = cant_bias_slab %>%
-         filter(eras == unique(cant_bias_slab$eras)[2]),
+# sum of all mean bias for each slab and basin
+cant_bias_slab_mean <- cant_bias_slab %>%
+  group_by(eras, basin, gamma_slab) %>%
+  summarise(cant_pos_bias_mean = mean(cant_pos_bias)) %>%
+  ungroup()
+
+cant_bias_slab_mean_sum <- cant_bias_slab_mean %>%
+  group_by(eras) %>%
+  summarise(cant_pos_bias_mean_sum = sum(cant_pos_bias_mean)) %>%
+  ungroup()
+#### The sum of mean bias is smaller than the carbon budget calculations
+
+# plot for bias with AIC
+ggplot(data = cant_bias_slab,
        aes(aic_mean, cant_pos_bias, col = gamma_slab)) +
   geom_point() +
   scale_color_viridis_d(name = "Gamma slabs") +
-  guides(col = guide_legend(ncol=2)) +
+  guides(col = guide_legend(ncol = 2)) +
   theme(legend.title = element_text(size = 9),
         legend.text = element_text(size = 6.5),
-    legend.position = c(0.84, 0.65),
+    legend.position = c(0.84, 0.81),
         legend.key.size = unit(0.3, "cm"),
         legend.key.width = unit(0.2,"cm"),
         legend.background = element_rect(fill = "lightgray")) +
-   xlim(0, 60000) +
-   ylim(0, 1) +
+  xlim(0, 60000) +
+#  ylim(0, 1) +
+  facet_grid(basin ~ eras) +
   labs(
-    subtitle = paste("Eras:", unique(cant_bias_slab$eras)[2]),
-    x = expression(AIC ~ (mu * mol ~ kg ^ "-1")),
+    x = "AIC",
     y = "Bias (Pg C)"
   )
 
