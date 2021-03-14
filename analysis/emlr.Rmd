@@ -67,7 +67,7 @@ library(gt)
 
 ## Cant - positive only
 
-```{r read_cant_inv_file}
+```{r read_cant_inv_file, eval=FALSE}
 
 cant_inv_JDM <-
   read_csv(paste(path_version_data,
@@ -80,7 +80,7 @@ cant_inv_M <-
 
 ```
 
-```{r join_M_and_JDM_inventories}
+```{r join_M_and_JDM_inventories, eval=FALSE}
 
 # add estimate label
 cant_inv_long <- bind_rows(cant_inv_JDM %>%  mutate(estimate = "JDM"),
@@ -108,7 +108,7 @@ cant_inv_wide <- cant_inv_wide %>%
 
 ```
 
-```{r cant_pos_inventory_map, fig.asp=0.5}
+```{r cant_pos_inventory_map, fig.asp=0.5, eval=FALSE}
 
 #for (i_eras in unique(cant_inv_long$eras)) {
 #  for (i_estimate in unique(cant_inv_long$estimate)) {
@@ -185,7 +185,7 @@ a / b +
 
 ## Cant - positive only
 
-```{r read_cant_zonal_file}
+```{r read_cant_zonal_file, eval=FALSE}
 
 cant_zonal_JDM <-
   read_csv(paste(path_version_data,
@@ -209,7 +209,7 @@ cant_zonal_M <-
 
 ```
 
-```{r join_cant_zonal}
+```{r join_cant_zonal, eval=FALSE}
 
 cant_zonal_JDM_gamma <- cant_zonal_JDM %>%
   select(lat, depth, eras, basin_AIP, gamma_mean)
@@ -237,11 +237,11 @@ cant_zonal_wide <- cant_zonal_wide %>%
 
 ```
 
-```{r cant_pos_zonal_mean_section, fig.asp=0.6}
+```{r cant_pos_zonal_mean_section, fig.asp=0.6, eval=FALSE}
 
 library(patchwork)
 i_eras <- "1982-1999 --> 2000-2012"
-i_basin_AIP <- "Pacific"
+i_basin_AIP <- "Indian"
 
 # df1 <- cant_zonal_long %>%
 #             filter(
@@ -409,7 +409,7 @@ i_basin_AIP <- "Pacific"
 
 # Residual with latitude
 
-```{r cant_residual_latitude}
+```{r cant_residual_latitude, eval=FALSE}
 
 b_cstar_tref <- function(df) {
   df <- df %>%
@@ -479,6 +479,176 @@ lm_best_plot <- lm_best_target %>%
 # fit all MLR models
 #  for (i_basin in unique(GLODAP$basin)) {
 #    for (i_era in unique(GLODAP$era)) {
+#i_basin <- unique(GLODAP$basin)[2]
+i_basin <- c("Indo-Pacific", "SO")
+i_era   <- unique(GLODAP$era)[2]
+#i_era   <- c("1982-1999", "2000-2012")
+print(i_basin)
+print(i_era)
+
+GLODAP_basin_era <- GLODAP %>%
+  filter(basin == i_basin, era == i_era)
+
+#      for (i_gamma_slab in unique(GLODAP_basin_era$gamma_slab)) {
+i_gamma_slab <- unique(GLODAP_basin_era$gamma_slab)[7]
+print(i_gamma_slab)
+
+GLODAP_basin_era_slab <- GLODAP_basin_era %>%
+  filter(gamma_slab == i_gamma_slab)
+
+lm_best_basin_era_slab <- lm_best_plot %>%
+  filter(basin %in% i_basin, era == i_era, gamma_slab == i_gamma_slab)
+
+#       for (i_eras in unique(lm_best_basin_era_slab$eras)) {
+i_eras <- unique(lm_best_basin_era_slab$eras)[1]
+print(i_eras)
+
+lm_best_basin_era_slab_eras <- lm_best_basin_era_slab %>%
+  filter(eras == i_eras)
+
+cstar_tref <-
+  full_join(GLODAP_basin_era_slab, lm_best_basin_era_slab_eras)
+
+#          for (i_predictors in unique(lm_best_basin_era_slab_eras$predictors)) {
+i_predictors <-
+  unique(lm_best_basin_era_slab$predictors)[1]
+print(i_predictors)
+
+cstar_tref <- b_cstar_tref(cstar_tref) %>%
+  mutate(cstar_tref_residual = cstar_tref - cstar_tref_fitted) %>%
+  select(-basin)
+
+print(
+  ggplot(cstar_tref, aes(lat, cstar_tref_residual)) +
+    geom_bin2d(binwidth = 1) +
+    scale_fill_viridis_c(
+      option = "magma",
+      direction = -1,
+      trans = "log10"
+    ) +
+    ylim(-15, 15) +
+    geom_vline(xintercept = -35) +
+    # facet_wrap(~ predictors, ncol = 2) +
+    labs(
+      x = expression(latitude ~ (degree * N)),
+      y = expression(C[t[ref]] ^ "*" ~ residual),
+      #subtitle = "(a) Era: 1982-1999"
+      subtitle = "(d) Era: 2000-2012"
+    )
+)
+
+
+# calculate mean residual -35~-40
+cstar_tref1 <- cstar_tref %>%
+  filter(lat >= -40) %>%
+  filter(lat <= -25) 
+
+mean(cstar_tref1$cstar_tref_residual)
+
+# ggsave(
+#   plot = residual,
+#   filename = "residual.png",
+#   width = 7,
+#   height = 9
+# )
+
+  #           
+  #         }
+  #         
+  #       }
+  #       
+  #     }
+  #   }
+  # }
+
+
+```
+
+```{r delta_cant_rmse, eval=FALSE}
+
+b_cstar_tref <- function(df) {
+  df <- df %>%
+    mutate(cstar_tref_intercept = `coeff_(Intercept)`)
+  
+  vars = params_local$MLR_predictors
+  
+  for (i_var in vars) {
+    df <- df %>%
+      mutate(!!sym(paste("cstar_tref_", i_var, sep = "")) :=
+               !!sym(i_var) *
+               !!sym(paste("coeff_", i_var, sep = "")))
+  }
+  
+  df <- df %>%
+    select(-contains("coeff_"))
+  
+  df <- df %>%
+    mutate(cstar_tref_fitted = reduce(select(., starts_with("cstar_tref_")), `+`))
+  
+  #df <- df %>%
+  #  mutate(cant_pos = if_else(cant < 0, 0, cant))
+  
+  return(df)
+  
+}
+
+lm_best_target <- read_csv(paste(path_version_data,
+                                 "lm_best_target.csv",
+                                 sep = ""))
+
+GLODAP <-
+  read_csv(paste(
+    path_version_data,
+    "GLODAPv2.2020_MLR_fitting_ready.csv",
+    sep = ""
+  ))
+
+GLODAP <- GLODAP %>%
+  select(
+    lon,
+    lat,
+    depth,
+    era,
+    basin_AIP,
+    basin,
+    gamma,
+    gamma_slab,
+    sal,
+    temp,
+    aou,
+    oxygen,
+   # nitrate,
+    silicate,
+    phosphate,
+    phosphate_star,
+    cstar_tref
+  )
+
+lm_best_target1 <- full_join(GLODAP, lm_best_target)
+
+lm_best <-
+  read_csv(paste(path_version_data,
+                  "lm_best.csv",
+                  sep = "")) %>%
+  select(basin, gamma_slab, eras, model, rmse, rmse_sum)
+
+lm_best_target <- left_join(lm_best_target, lm_best)
+
+lm_best_target <- lm_best_target %>%
+  mutate(rmse = case_when(eras == "1982-1999 --> 2000-2012" & era == "1982-1999" ~ rmse_sum - rmse,
+                          eras == "1982-1999 --> 2000-2012" & era == "2000-2012" ~ rmse,
+                          eras == "2000-2012 --> 2013-2019" & era == "2000-2012" ~ rmse_sum - rmse,
+                          eras == "2000-2012 --> 2013-2019" & era == "2013-2019" ~ rmse))
+
+# mutate predictors column
+lm_best_plot <- lm_best_target %>%
+  mutate(predictors = str_remove(model, paste(params_local$MLR_target, "~ ")),
+         predictors = str_replace_all(predictors, "\\+ ", ""))
+
+# loop across all basins, era, gamma slabs, and MLRs
+# fit all MLR models
+#  for (i_basin in unique(GLODAP$basin)) {
+#    for (i_era in unique(GLODAP$era)) {
 i_basin <- unique(GLODAP$basin)[2]
 i_era   <- unique(GLODAP$era)[2]
 print(i_basin)
@@ -508,35 +678,29 @@ cstar_tref <-
   full_join(GLODAP_basin_era_slab, lm_best_basin_era_slab_eras)
 
 #          for (i_predictors in unique(lm_best_basin_era_slab_eras$predictors)) {
-i_predictors <-
-  unique(lm_best_basin_era_slab$predictors)[1]
-print(i_predictors)
+# i_predictors <-
+#   unique(lm_best_basin_era_slab$predictors)[1]
+# print(i_predictors)
 
 cstar_tref <- b_cstar_tref(cstar_tref) %>%
   mutate(cstar_tref_residual = cstar_tref - cstar_tref_fitted)
 
-residual <-
-  ggplot(cstar_tref, aes(lat, cstar_tref_residual)) +
-  geom_bin2d(binwidth = 1) +
-  scale_fill_viridis_c(option = "magma",
-                       direction = -1,
-                       trans = "log10") +
-  ylim(-15,15) +
-#  facet_wrap(~ predictors, ncol = 2) +
-  labs(
-    x = expression(latitude ~ (degree * N)),
-    y = expression(C[t[ref]] ^ "*" ~ residual),
-    subtitle = "(c) Era: 1982-1999"
-  )
-
-residual
-
-# calculate mean residual -35~-40
-cstar_tref1 <- cstar_tref %>%
+cstar_tref <- cstar_tref %>%
   filter(lat >= -40) %>%
-  filter(lat <= -35) 
+  filter(lat <= -25) 
 
-mean(cstar_tref1$cstar_tref_residual)
+cstar_tref[,'rmse']=round(cstar_tref[,'rmse'], 3)
+
+boxplot(
+  cstar_tref_residual ~ rmse,
+  outline = FALSE,
+  data = cstar_tref,
+  xlab = expression(RMSE),
+  ylab = expression(C[t[ref]] ^ "*" ~ residual)
+) 
+  title(sub = "(b) Era: 2000-2012", adj = 0, line = -10.5)
+
+
 
 # ggsave(
 #   plot = residual,
@@ -557,6 +721,116 @@ mean(cstar_tref1$cstar_tref_residual)
 
 ```
 
+```{r bias_rmse}
 
+predictors <-
+  read_csv(paste(path_version_data,
+                 "predictors_M2007.csv",
+                 sep = ""))
+
+lm_best <-
+  read_csv(paste(path_version_data,
+                 "lm_best.csv",
+                 sep = "")) %>%
+  mutate(rmse_mean = rmse_sum / 2,
+         aic_mean = aic_sum / 2) %>%
+  select(basin, gamma_slab, eras, model, rmse_mean, aic_mean)
+
+lm_best_cant <-
+  read_csv(paste(path_version_data,
+                 "lm_best_cant.csv",
+                 sep = ""))
+
+# join predictors and MLR
+cant <- full_join(predictors, lm_best_cant)
+
+cant <- b_cant(cant)
+
+cant_M <-
+  read_csv(paste(path_version_data,
+                 "cant_M.csv", sep = ""))
+
+cant_M <- cant_M %>%
+  rename(cant_M = cant, cant_pos_M = cant_pos)
+
+cant_join <- left_join(cant, cant_M) %>%
+  mutate(cant_offset = cant - cant_M,
+         cant_pos_offset = cant_pos - cant_pos_M) %>%
+  select(lon, lat, basin, gamma_slab, eras, model, depth, cant_pos_offset)
+
+cant_bias <- left_join(cant_join, lm_best)
+
+rm(cant_join, cant, cant_M, lm_best, lm_best_cant, predictors)
+  
+library(tibble)
+depth_level_volume <- tibble(depth = unique(cant_bias$depth)) %>%
+  arrange(depth)
+
+# determine depth level volume of each depth layer
+depth_level_volume <- depth_level_volume %>%
+  mutate(
+    layer_thickness_above = replace_na((depth - lag(depth)) / 2, 0),
+    layer_thickness_below = replace_na((lead(depth) - depth) / 2, 0),
+    layer_thickness = layer_thickness_above + layer_thickness_below
+  ) %>%
+  select(-c(layer_thickness_above,
+            layer_thickness_below))
+
+cant_bias <- full_join(cant_bias, depth_level_volume)
+
+# calculate cant grid bias
+cant_bias <- cant_bias %>%
+  mutate(
+    surface_area = earth_surf(lat, lon),
+    cant_pos_bias_grid = cant_pos_offset * layer_thickness * 1.03 * 1000 * surface_area * 12 * 1e-15 * 1e-6
+  ) %>%
+  select(-layer_thickness, -surface_area)
+
+cant_bias_slab <- cant_bias %>%
+  group_by(eras, basin, gamma_slab, model, rmse_mean, aic_mean) %>%
+  summarise(cant_pos_bias = sum(cant_pos_bias_grid)) %>%
+  ungroup()
+
+ggplot(data = cant_bias_slab %>%
+         filter(eras == unique(cant_bias_slab$eras)[2]),
+       aes(rmse_mean, cant_pos_bias, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = "Gamma slabs") +
+  guides(col = guide_legend(ncol = 2)) +
+  theme(legend.title = element_text(size = 9),
+        legend.text = element_text(size = 6.5),
+    legend.position = c(0.84, 0.65),
+        legend.key.size = unit(0.3, "cm"),
+        legend.key.width = unit(0.2,"cm"),
+        legend.background = element_rect(fill = "lightgray")) +
+  xlim(0, 7) +
+  ylim(0, 1) +
+  labs(
+    subtitle = paste("Eras:", unique(cant_bias_slab$eras)[2]),
+    x = expression(RMSE ~ (mu * mol ~ kg ^ "-1")),
+    y = "Bias (Pg C)"
+  )
+
+ggplot(data = cant_bias_slab %>%
+         filter(eras == unique(cant_bias_slab$eras)[2]),
+       aes(aic_mean, cant_pos_bias, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = "Gamma slabs") +
+  guides(col = guide_legend(ncol=2)) +
+  theme(legend.title = element_text(size = 9),
+        legend.text = element_text(size = 6.5),
+    legend.position = c(0.84, 0.65),
+        legend.key.size = unit(0.3, "cm"),
+        legend.key.width = unit(0.2,"cm"),
+        legend.background = element_rect(fill = "lightgray")) +
+   xlim(0, 60000) +
+   ylim(0, 1) +
+  labs(
+    subtitle = paste("Eras:", unique(cant_bias_slab$eras)[2]),
+    x = expression(AIC ~ (mu * mol ~ kg ^ "-1")),
+    y = "Bias (Pg C)"
+  )
+
+```
 
 
