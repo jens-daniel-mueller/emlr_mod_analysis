@@ -729,6 +729,7 @@ predictors <-
                  "predictors_M2007.csv",
                  sep = ""))
 
+# calculate mean rmse and aic for each eras
 lm_best <-
   read_csv(paste(path_version_data,
                  "lm_best.csv",
@@ -845,5 +846,4 @@ ggplot(data = cant_bias_slab,
   )
 
 ```
-
 
