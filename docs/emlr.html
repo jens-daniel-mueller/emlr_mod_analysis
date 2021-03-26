@@ -423,7 +423,7 @@ div.tocify {
 
 <h1 class="title toc-ignore">Inventory maps</h1>
 <h4 class="author">Jens Daniel Müller and Donghe Zhu</h4>
-<h4 class="date">13 March, 2021</h4>
+<h4 class="date">14 March, 2021</h4>
 
 </div>
 
@@ -448,7 +448,7 @@ div.tocify {
 <div class="tab-content">
 <div id="summary" class="tab-pane fade in active">
 <p>
-<strong>Last updated:</strong> 2021-03-13
+<strong>Last updated:</strong> 2021-03-14
 </p>
 <p>
 <strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
@@ -539,16 +539,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjensdanielmuelleremlrmodanalysistreec43c465ca21d9e3e981cdeb1b5ab1eca5f0a9013targetblankc43c465a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/tree/c43c465ca21d9e3e981cdeb1b5ab1eca5f0a9013" target="_blank">c43c465</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomjensdanielmuelleremlrmodanalysistreee548d0fc9028f8f3d93d8389c7408f62ba493e34targetblanke548d0fa"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/tree/e548d0fc9028f8f3d93d8389c7408f62ba493e34" target="_blank">e548d0f</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomjensdanielmuelleremlrmodanalysistreec43c465ca21d9e3e981cdeb1b5ab1eca5f0a9013targetblankc43c465a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomjensdanielmuelleremlrmodanalysistreee548d0fc9028f8f3d93d8389c7408f62ba493e34targetblanke548d0fa" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/tree/c43c465ca21d9e3e981cdeb1b5ab1eca5f0a9013" target="_blank">c43c465</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/tree/e548d0fc9028f8f3d93d8389c7408f62ba493e34" target="_blank">e548d0f</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -557,6 +557,10 @@ Note that you need to be careful to ensure that all relevant files for the analy
 Ignored files:
     Ignored:    .Rhistory
     Ignored:    .Rproj.user/
+
+Untracked files:
+    Untracked:  bias_aic.png
+    Untracked:  bias_rmse.png
 
 </code></pre>
 <p>
@@ -595,6 +599,57 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/blob/e548d0fc9028f8f3d93d8389c7408f62ba493e34/analysis/emlr.Rmd" target="_blank">e548d0f</a>
+</td>
+<td>
+Donghe-Zhu
+</td>
+<td>
+2021-03-14
+</td>
+<td>
+plot for thesis
+</td>
+</tr>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/blob/9e8569c81f3c4ae151e8e903f8d0295438347505/analysis/emlr.Rmd" target="_blank">9e8569c</a>
+</td>
+<td>
+Donghe-Zhu
+</td>
+<td>
+2021-03-14
+</td>
+<td>
+bias
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/jens-daniel-mueller/emlr_mod_analysis/8f7228d123c8c47c076fa909944f5aa189979ed6/docs/emlr.html" target="_blank">8f7228d</a>
+</td>
+<td>
+Donghe-Zhu
+</td>
+<td>
+2021-03-13
+</td>
+<td>
+Build site.
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -1338,11 +1393,13 @@ boxplot(
   #     }
   #   }
   # }</code></pre>
-<pre class="r"><code>predictors &lt;-
+<pre class="r"><code># read in required files
+predictors &lt;-
   read_csv(paste(path_version_data,
                  &quot;predictors_M2007.csv&quot;,
                  sep = &quot;&quot;))
 
+# calculate mean rmse and aic for each eras
 lm_best &lt;-
   read_csv(paste(path_version_data,
                  &quot;lm_best.csv&quot;,
@@ -1406,46 +1463,132 @@ cant_bias_slab &lt;- cant_bias %&gt;%
   summarise(cant_pos_bias = sum(cant_pos_bias_grid)) %&gt;%
   ungroup()
 
-ggplot(data = cant_bias_slab %&gt;%
-         filter(eras == unique(cant_bias_slab$eras)[2]),
+# plot for bias with rmse
+ggplot(data = cant_bias_slab,
        aes(rmse_mean, cant_pos_bias, col = gamma_slab)) +
   geom_point() +
   scale_color_viridis_d(name = &quot;Gamma slabs&quot;) +
   guides(col = guide_legend(ncol = 2)) +
   theme(legend.title = element_text(size = 9),
         legend.text = element_text(size = 6.5),
-    legend.position = c(0.84, 0.65),
+    legend.position = c(0.84, 0.81),
         legend.key.size = unit(0.3, &quot;cm&quot;),
         legend.key.width = unit(0.2,&quot;cm&quot;),
         legend.background = element_rect(fill = &quot;lightgray&quot;)) +
   xlim(0, 7) +
-  ylim(0, 1) +
+#  ylim(0, 1) +
+  facet_grid(basin ~ eras) +
   labs(
-    subtitle = paste(&quot;Eras:&quot;, unique(cant_bias_slab$eras)[2]),
     x = expression(RMSE ~ (mu * mol ~ kg ^ &quot;-1&quot;)),
     y = &quot;Bias (Pg C)&quot;
   )</code></pre>
 <p><img src="figure/emlr.Rmd/bias_rmse-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>ggplot(data = cant_bias_slab %&gt;%
-         filter(eras == unique(cant_bias_slab$eras)[2]),
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-bias_rmse-1">
+Past versions of bias_rmse-1.png
+</button>
+</p>
+<div id="fig-bias_rmse-1" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/blob/8f7228d123c8c47c076fa909944f5aa189979ed6/docs/figure/emlr.Rmd/bias_rmse-1.png" target="_blank">8f7228d</a>
+</td>
+<td>
+Donghe-Zhu
+</td>
+<td>
+2021-03-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<pre class="r"><code># sum of all mean bias for each slab and basin
+cant_bias_slab_mean &lt;- cant_bias_slab %&gt;%
+  group_by(eras, basin, gamma_slab) %&gt;%
+  summarise(cant_pos_bias_mean = mean(cant_pos_bias)) %&gt;%
+  ungroup()
+
+cant_bias_slab_mean_sum &lt;- cant_bias_slab_mean %&gt;%
+  group_by(eras) %&gt;%
+  summarise(cant_pos_bias_mean_sum = sum(cant_pos_bias_mean)) %&gt;%
+  ungroup()
+#### The sum of mean bias is smaller than the carbon budget calculations
+
+# plot for bias with AIC
+ggplot(data = cant_bias_slab,
        aes(aic_mean, cant_pos_bias, col = gamma_slab)) +
   geom_point() +
   scale_color_viridis_d(name = &quot;Gamma slabs&quot;) +
-  guides(col = guide_legend(ncol=2)) +
+  guides(col = guide_legend(ncol = 2)) +
   theme(legend.title = element_text(size = 9),
         legend.text = element_text(size = 6.5),
-    legend.position = c(0.84, 0.65),
+    legend.position = c(0.84, 0.81),
         legend.key.size = unit(0.3, &quot;cm&quot;),
         legend.key.width = unit(0.2,&quot;cm&quot;),
         legend.background = element_rect(fill = &quot;lightgray&quot;)) +
-   xlim(0, 60000) +
-   ylim(0, 1) +
+  xlim(0, 60000) +
+#  ylim(0, 1) +
+  facet_grid(basin ~ eras) +
   labs(
-    subtitle = paste(&quot;Eras:&quot;, unique(cant_bias_slab$eras)[2]),
-    x = expression(AIC ~ (mu * mol ~ kg ^ &quot;-1&quot;)),
+    x = &quot;AIC&quot;,
     y = &quot;Bias (Pg C)&quot;
   )</code></pre>
 <p><img src="figure/emlr.Rmd/bias_rmse-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>
+<button type="button" class="btn btn-default btn-xs btn-workflowr btn-workflowr-fig" data-toggle="collapse" data-target="#fig-bias_rmse-2">
+Past versions of bias_rmse-2.png
+</button>
+</p>
+<div id="fig-bias_rmse-2" class="collapse">
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+<a href="https://github.com/jens-daniel-mueller/emlr_mod_analysis/blob/8f7228d123c8c47c076fa909944f5aa189979ed6/docs/figure/emlr.Rmd/bias_rmse-2.png" target="_blank">8f7228d</a>
+</td>
+<td>
+Donghe-Zhu
+</td>
+<td>
+2021-03-13
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
