@@ -20,7 +20,7 @@ editor_options:
 
 ```{r read_params_local, include = FALSE}
 
-Version_ID <- "v_XXX_118_Gruber"
+Version_ID <- "v_XXX_101_Gruber"
 
 ```
 
@@ -60,6 +60,158 @@ path_version_figures  <-
 library(scales)
 library(marelac)
 library(gt)
+```
+
+# Predictor correlation plots
+
+```{r predictor_correlation_per_basin, fig.asp=1}
+
+GLODAP <-
+  read_csv(paste(path_version_data,
+                 "GLODAPv2.2020_MLR_fitting_ready.csv",
+                 sep = ""))
+
+library(GGally)
+library(plotly)
+library(ggpubr)
+
+for (i_basin in unique(GLODAP$basin)) {
+ i_basin <- unique(GLODAP$basin)[2]
+
+print(
+GLODAP %>% 
+  filter(basin == i_basin) %>% 
+  sample_frac(0.05) %>%
+  ggpairs(
+    columns = c(
+      params_local$MLR_target,
+      "sal",
+      "temp",
+      "oxygen",
+      "aou",
+      "nitrate",
+      "silicate",
+      "silicate_star",
+      "phosphate",
+      "phosphate_star"
+    ), 
+    columnLabels = c("C[ref]*",
+                  'Salinity',
+                  'Temperature',
+                  "Oxygen",
+                  'AOU',
+                  'Nitrate',
+                  "Silicate",
+                  "Silicate*",
+                  "Phosphate",
+                  "Phosphate*"),
+  axisLabels="none",
+    upper = "blank",
+    ggplot2::aes(col = gamma_slab, fill = gamma_slab, alpha = 0.01)
+  ) +
+  scale_fill_viridis_d(direction = -1) +
+  scale_color_viridis_d(direction = -1) +
+  labs(title = paste(
+    "Basin:",
+    i_basin ,
+    "| subsample size: 5 % of",
+    nrow(GLODAP %>% filter(basin == i_basin)),
+    "subset data"
+  ))
+)
+}
+
+##### Specific predictor pairs
+a <- GLODAP %>%
+  #filter(basin == i_basin) %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(silicate, silicate_star, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = expression(Silicate ~ (mu * mol ~ kg ^ {
+         -1})),
+       y = expression(Silicate * "*" ~ (mu * mol ~ kg ^ {
+         -1}))
+       )
+
+b <- GLODAP %>%
+  #filter(basin == i_basin) %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(sal, temp, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = "Salinity (g/kg)",
+       y = "Temperature (°C)"
+       )
+
+c <- GLODAP %>%
+  #filter(basin == i_basin) %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(nitrate, phosphate, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = expression(Nitrate ~ (mu * mol ~ kg ^ {
+         -1})),
+       y = expression(Phosphate ~ (mu * mol ~ kg ^ {
+         -1}))
+       )
+
+d <- GLODAP %>%
+  #filter(basin == i_basin) %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(temp, phosphate_star, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = "Temperature (°C)",
+       y = expression(Phosphate * "*" ~ (mu * mol ~ kg ^ {
+         -1
+       })))
+
+ggarrange(a, b, c, d, nrow = 2, ncol = 2, align = "hv", common.legend = TRUE, legend = "right")
+
+ggsave("specific_correlation_pairs.png", width = 8, height = 6.6)
+
+```
+
+
+# AIC vs RMSE for all fitted models
+
+```{r aic_vs_rmse}
+
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_118_my/data/"
+
+lm_all_fitted_wide_eras %>% 
+  write_csv(paste(path_version_data,
+                  "lm_all_fitted_wide_eras.csv",
+                  sep = ""))
+
+lm_all_fitted_wide_eras %>% 
+  filter(eras == unique(lm_all_fitted_wide_eras$eras)[1]) %>%
+#  filter(basin == unique(lm_all_fitted_wide_eras$basin)[2]) %>%
+  ggplot(aes(rmse, aic, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(direction = -1) +
+  labs(
+    x = expression(RMSE~(mu * mol ~ kg ^ {-1})),
+    y = "AIC"
+  ) +
+  theme(
+        legend.key.size = unit(0.45, "cm"),
+        legend.key.width = unit(0.2,"cm")) +
+  facet_grid(.~basin)
+
 ```
 
 
@@ -113,8 +265,8 @@ cant_inv_wide <- cant_inv_wide %>%
 #for (i_eras in unique(cant_inv_long$eras)) {
 #  for (i_estimate in unique(cant_inv_long$estimate)) {
 
-library(patchwork)
-i_eras <- "1982-1999 --> 2000-2012"
+i_eras <- "2000-2009 --> 2010-2019"
+#i_eras <- "1982-1999 --> 2000-2009"
 
 df1 <-
   cant_inv_long %>% filter(estimate == unique(cant_inv_long$estimate)[1], eras == i_eras)
@@ -122,7 +274,7 @@ df2 <-
   cant_inv_long %>% filter(estimate == unique(cant_inv_long$estimate)[2], eras == i_eras)
 
 var = "cant_pos_inv"
-breaks <- c(0, 2, 4, 6, 8, 10, 12, 14, 16, Inf)
+breaks <- c(0, 2, 4, 6, 8, 10, Inf)
 var <- sym(var)
 breaks_n <- length(breaks) - 1
 
@@ -137,46 +289,79 @@ df2 <- df2 %>%
                        breaks,
                        right = FALSE))
 
-# for (i in (1:length(map[["layers"]][[1]][["data"]][["lon"]]))){
-#   if (map[["layers"]][[1]][["data"]][["lon"]][i] > 180) {
-#     map[["layers"]][[1]][["data"]][["lon"]][i] = map[["layers"]][[1]][["data"]][["lon"]][i] -360
-#   }
-#   
-# }
-
 section <- map +
-  scale_fill_manual(values = p_gruber_rainbow(breaks_n),
-                    drop = FALSE,
-                    name = expression(atop(Delta * C["ant,pos"],
-                                           (mol ~ m ^ {
-                                             -2
-                                           })))) +
-  guides(fill = guide_colorsteps(barheight = unit(6, "cm")))
+  scale_color_viridis_d() 
+  # scale_fill_scico_d(palette = 'imola',
+  #                    drop = FALSE,
+  #                   name = expression(atop(Delta * C["ant,pos"],
+  #                                         (mol ~ m ^ {
+  #                                            -2
+  #                                          })))) +
+  # scale_fill_manual(values  = wes_palette("Zissou1", 7, type = "continuous"),
+  #                   drop = FALSE,
+  #                   name = expression(atop(Delta * C["ant,pos"],
+  #                                         (mol ~ m ^ {
+  #                                            -2
+  #                                          })))) +
+  # scale_fill_manual(values = p_gruber_rainbow(breaks_n),
+  #                   drop = FALSE,
+  #                   name = expression(atop(Delta * C["ant,pos"],
+  #                                          (mol ~ m ^ {
+  #                                            -2
+  #                                          })))) +
+  # guides(fill = guide_colorsteps(barheight = unit(4.5, "cm")))
 
-a <- section +
+a <- map +
   geom_raster(data = df1,
               aes(lon, lat, fill = var_int)) +
-  labs(subtitle = "(a) eMLR reconstruction")
+  labs(subtitle = "(a) eMLR reconstruction") 
+
+a
 
 b <- section +
   geom_raster(data = df2,
               aes(lon, lat, fill = var_int)) +
-  labs(subtitle = "(b) Model truth")
+  labs(subtitle = "(b) Model truth") 
 
 a / b +
   plot_layout(guides = "collect")
 
+ggsave("2_Pac_inv.png")
 
-#  }
-#  print(
-    p_map_cant_inv_offset(
-      cant_inv_wide %>% filter(eras == i_eras),
-      "cant_pos_inv_offset",
-      title_text = "",
-      subtitle_text = "(c) Offset"
-    )
-#  )
-#}
+########## Offset
+
+breaks <- c(-Inf, -6, -4, -2, 0, 2, 4, 6, Inf)
+
+section_o <- map +
+  scale_fill_scico_d(palette = 'vik',
+                    drop = FALSE,
+                    name = expression(atop(Bias~Delta*C[ant],
+                                                 (mol~m^{-2})))) +
+  # scale_fill_manual(values=as.vector(ocean.balance(7)),
+  #                   drop = FALSE,
+  #                   name = expression(atop(Bias~Delta*C[ant],
+  #                                                (mol~m^{-2})))) +
+      # scale_fill_scico_d(palette = "vik", drop = FALSE,
+      #                    name = expression(atop(Bias~Delta*C[ant],
+      #                                           (mol~m^{-2})))) +
+      guides(fill = guide_colorsteps(barheight = unit(4.5, "cm")))
+
+c <- section_o +
+  geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
+                  aes(lon, lat, fill = cut(!!sym("cant_pos_inv_offset"), breaks))) +
+  labs(subtitle = "(c) Bias")
+
+c
+
+d <- section_o +
+  geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
+                  aes(lon, lat, fill = cut(!!sym("cant_pos_inv_offset"), breaks))) +
+  labs(subtitle = "(d) Bias - Constant & random subset")
+
+c / d +
+  plot_layout(guides = "collect")
+
+ggsave("vg_inv_off.png")
 
 ```
 
@@ -240,123 +425,113 @@ cant_zonal_wide <- cant_zonal_wide %>%
 ```{r cant_pos_zonal_mean_section, fig.asp=0.6, eval=FALSE}
 
 library(patchwork)
-i_eras <- "1982-1999 --> 2000-2012"
-i_basin_AIP <- "Indian"
+i_eras <- "2000-2009 --> 2010-2019"
+#i_eras <- "1982-1999 --> 2000-2009"
+i_basin_AIP <- "Pacific"
 
-# df1 <- cant_zonal_long %>%
-#             filter(
-#               basin_AIP == i_basin_AIP,
-#               estimate == unique(cant_zonal_long$estimate)[1],
-#               eras == i_eras
-#             )
-# 
-# df2 <- cant_zonal_long %>%
-#             filter(
-#               basin_AIP == i_basin_AIP,
-#               estimate == unique(cant_zonal_long$estimate)[2],
-#               eras == i_eras
-#             )
-# 
-# 
-#            var = "cant_pos"
-#            var_name = var
-#            gamma = "gamma_mean"
-#            drop_slabs = 1
-#            breaks = params_global$breaks_cant_pos
-#            legend_title = expression(atop(Delta * C[ant,pos],
-#                                           (mu * mol ~ kg ^ {-1})))
-#            title_text = "Zonal mean section"
-#            subtitle_text = ""
-#            slab_breaks <- params_local$slabs_Ind_Pac
-# 
-#     var <- sym(var)
-#     gamma <- sym(gamma)
-#     
-#     breaks_n <- length(breaks) - 1
-# 
-#     geom_raster(data = df1,
-#               aes(lon, lat, fill = var_int)) +
-#     
-#     # plot base section
-#     section <-
-#       guides(fill = guide_colorsteps(barheight = unit(8, "cm"))) +
-#       scale_y_reverse() +
-#       scale_x_continuous(breaks = seq(-100, 100, 20),
-#                          limits = c(-85,85)) +
-#         scale_fill_manual(values = p_gruber_rainbow(breaks_n),
-#                           drop = FALSE,
-#                           name = legend_title) +
-#       geom_hline(yintercept = params_local$depth_min,
-#                    col = "white",
-#                    linetype = 2) +
-#         geom_contour(aes(lat, depth, z = !!gamma),
-#                      breaks = slab_breaks,
-#                      col = "black") +
-#         geom_text_contour(
-#           aes(lat, depth, z = !!gamma),
-#           breaks = slab_breaks,
-#           col = "black",
-#           skip = drop_slabs
-#         )
-# 
-#     
-#          ggplot() +
-#     
-# 
-#       section <- section +
-#         geom_contour_filled(aes(lat, depth, z = !!var),
-#                             breaks = breaks) +
-#         scale_fill_manual(values = p_gruber_rainbow(breaks_n),
-#                           drop = FALSE,
-#                           name = legend_title)
-# 
-# section <- section  +
-#         geom_hline(yintercept = params_local$depth_min,
-#                    col = "white",
-#                    linetype = 2) +
-#         geom_contour(aes(lat, depth, z = !!gamma),
-#                      breaks = slab_breaks,
-#                      col = "black") +
-#         geom_text_contour(
-#           aes(lat, depth, z = !!gamma),
-#           breaks = slab_breaks,
-#           col = "black",
-#           skip = drop_slabs
-#         )
-# 
-#     # cut surface water section
-#     surface <-
-#       section +
-#       ggplot(df = df1) +
-#       geom_contour_filled(aes(lat, depth, z = !!var),
-#                             breaks = breaks) +
-#       coord_cartesian(
-#         expand = 0,
-#         ylim = c(500, 0)
-#       ) +
-#       labs(y = "Depth (m)",
-#            title = title_text,
-#            subtitle = subtitle_text) +
-#       theme(
-#         axis.title.x = element_blank(),
-#         axis.text.x = element_blank(),
-#         axis.ticks.x = element_blank()
-#       )
-# 
-#     # cut deep water section
-#     deep <-
-#       section +
-#       coord_cartesian(
-#         expand = 0,
-#         ylim = c(params_global$plotting_depth, 500)
-#       ) +
-#       labs(x = expression(latitude~(degree*N)), y = "Depth (m)")
-# 
-# 
-#     # combine surface and deep water section
-#   a <- surface / deep +
-#       plot_layout(guides = "collect")
+p_section_zonal <- function(df,
+           var = "cant_pos",
+           var_name = var,
+           col = "continuous",
+           gamma = "gamma_mean",
+           plot_slabs = "y",
+           drop_slabs = 1,
+           breaks = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,Inf),
+           legend_title = expression(atop(Delta * C[ant,pos],
+                                          (mu * mol ~ kg ^ {-1}))),
+           subtitle_text = "") {
 
+    var <- sym(var)
+    gamma <- sym(gamma)
+
+    # plot base section
+    section <- df %>%
+      ggplot() +
+      guides(fill = guide_colorsteps(barheight = unit(8, "cm"))) +
+      scale_y_reverse() +
+      scale_x_continuous(breaks = seq(-100, 100, 20),
+                         limits = c(-85,85))
+
+    # plot layer for chose color scale (default continuous)
+    if (col == "continuous") {
+
+      breaks_n <- length(breaks) - 1
+
+      section <- section +
+        geom_contour_filled(aes(lat, depth, z = !!var),
+                            breaks = breaks) +
+        scale_fill_manual(values = p_gruber_rainbow(breaks_n),
+                          drop = FALSE,
+                          name = legend_title)
+    } else {
+
+      section <- section +
+        geom_contour_filled(aes(lat, depth, z = !!var),
+                            breaks = breaks) +
+        scale_fill_scico_d(palette = "vik",
+                           drop = FALSE,
+                           name = legend_title)
+
+    }
+
+
+    # plot isoneutral density lines if chosen (default yes)
+    if (plot_slabs == "y") {
+
+      # select slab breaks for plotted basin
+      if (i_basin_AIP == "Atlantic") {
+        slab_breaks <- params_local$slabs_Atl
+      } else {
+        slab_breaks <- params_local$slabs_Ind_Pac
+      }
+
+
+      section <- section  +
+        geom_hline(yintercept = params_local$depth_min,
+                   col = "white",
+                   linetype = 2) +
+        geom_contour(aes(lat, depth, z = !!gamma),
+                     breaks = slab_breaks,
+                     col = "black") +
+        geom_text_contour(
+          aes(lat, depth, z = !!gamma),
+          breaks = slab_breaks,
+          col = "black",
+          skip = drop_slabs
+        )
+
+    }
+
+    # cut surface water section
+    surface <-
+      section +
+      coord_cartesian(
+        expand = 0,
+        ylim = c(500, 0)
+      ) +
+      labs(y = "Depth (m)",
+           subtitle = subtitle_text) +
+      theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank()
+      )
+
+    # cut deep water section
+    deep <-
+      section +
+      coord_cartesian(
+        expand = 0,
+        ylim = c(params_global$plotting_depth, 500)
+      ) +
+      labs(x = expression(latitude~(degree*N)), y = "Depth (m)")
+
+
+    # combine surface and deep water section
+    surface / deep +
+      plot_layout(guides = "collect")
+
+}
     
     a <- p_section_zonal(
           df = cant_zonal_long %>%
@@ -366,10 +541,11 @@ i_basin_AIP <- "Indian"
               eras == i_eras
             ),
           var = "cant_pos_mean",
-          title_text = "",
           subtitle_text = "(a) eMLR reconstruction",
         )
     a
+    
+    ggsave("2_Pac_zon_em.png", width = 6.33, height =  4.54)
    
      b <- p_section_zonal(
           df = cant_zonal_long %>%
@@ -379,18 +555,14 @@ i_basin_AIP <- "Indian"
               eras == i_eras
             ),
           var = "cant_pos_mean",
-          title_text = "",
           subtitle_text = "(b) Model truth"
         )
     
      b
      
-  #    a + b +
-  # plot_layout(guides = "collect")
-      
-    
-    # Offset
-   # print(
+     ggsave("2_Pac_zon_mo.png", width = 6.33, height =  4.54)
+     
+########### Offset
       p_section_zonal(
         df = cant_zonal_wide %>%
           filter(basin_AIP == i_basin_AIP,
@@ -398,10 +570,9 @@ i_basin_AIP <- "Indian"
         var = "cant_pos_mean_offset",
         breaks = params_global$breaks_cant_offset,
         col = "divergent",
-        title_text = "",
-        subtitle_text = "(c) Offset")
-    #  )
-   # )
+        subtitle_text = "(c) Bias")
+      
+      ggsave("so_Pac_zon_off.png", width = 6.33, height =  4.54)
 
 ```
 
@@ -469,7 +640,6 @@ GLODAP <- GLODAP %>%
     cstar_tref
   )
 
-
 # mutate predictors column
 lm_best_plot <- lm_best_target %>%
   mutate(predictors = str_remove(model, paste(params_local$MLR_target, "~ ")),
@@ -481,7 +651,7 @@ lm_best_plot <- lm_best_target %>%
 #    for (i_era in unique(GLODAP$era)) {
 #i_basin <- unique(GLODAP$basin)[2]
 i_basin <- c("Indo-Pacific", "SO")
-i_era   <- unique(GLODAP$era)[2]
+i_era   <- unique(GLODAP$era)[3]
 #i_era   <- c("1982-1999", "2000-2012")
 print(i_basin)
 print(i_era)
@@ -532,11 +702,12 @@ print(
     labs(
       x = expression(latitude ~ (degree * N)),
       y = expression(C[t[ref]] ^ "*" ~ residual),
-      #subtitle = "(a) Era: 1982-1999"
-      subtitle = "(d) Era: 2000-2012"
+      #subtitle = "(c) Era: 1982-1999"
+      subtitle = "(d) Era: 2000-2009"
     )
 )
 
+ggsave("residual_e2_rso.png")
 
 # calculate mean residual -35~-40
 cstar_tref1 <- cstar_tref %>%
@@ -560,7 +731,6 @@ mean(cstar_tref1$cstar_tref_residual)
   #     }
   #   }
   # }
-
 
 ```
 
@@ -624,8 +794,6 @@ GLODAP <- GLODAP %>%
     cstar_tref
   )
 
-lm_best_target1 <- full_join(GLODAP, lm_best_target)
-
 lm_best <-
   read_csv(paste(path_version_data,
                   "lm_best.csv",
@@ -635,10 +803,10 @@ lm_best <-
 lm_best_target <- left_join(lm_best_target, lm_best)
 
 lm_best_target <- lm_best_target %>%
-  mutate(rmse = case_when(eras == "1982-1999 --> 2000-2012" & era == "1982-1999" ~ rmse_sum - rmse,
-                          eras == "1982-1999 --> 2000-2012" & era == "2000-2012" ~ rmse,
-                          eras == "2000-2012 --> 2013-2019" & era == "2000-2012" ~ rmse_sum - rmse,
-                          eras == "2000-2012 --> 2013-2019" & era == "2013-2019" ~ rmse))
+  mutate(rmse = case_when(eras == "1982-1999 --> 2000-2009" & era == "1982-1999" ~ rmse_sum - rmse,
+                          eras == "1982-1999 --> 2000-2009" & era == "2000-2009" ~ rmse,
+                          eras == "2000-2009 --> 2010-2019" & era == "2000-2009" ~ rmse_sum - rmse,
+                          eras == "2000-2009 --> 2010-2019" & era == "2010-2019" ~ rmse))
 
 # mutate predictors column
 lm_best_plot <- lm_best_target %>%
@@ -650,7 +818,7 @@ lm_best_plot <- lm_best_target %>%
 #  for (i_basin in unique(GLODAP$basin)) {
 #    for (i_era in unique(GLODAP$era)) {
 i_basin <- unique(GLODAP$basin)[2]
-i_era   <- unique(GLODAP$era)[2]
+i_era   <- unique(GLODAP$era)[3]
 print(i_basin)
 print(i_era)
 
@@ -691,16 +859,23 @@ cstar_tref <- cstar_tref %>%
 
 cstar_tref[,'rmse']=round(cstar_tref[,'rmse'], 3)
 
-boxplot(
-  cstar_tref_residual ~ rmse,
-  outline = FALSE,
-  data = cstar_tref,
-  xlab = expression(RMSE),
-  ylab = expression(C[t[ref]] ^ "*" ~ residual)
-) 
-  title(sub = "(b) Era: 2000-2012", adj = 0, line = -10.5)
+cstar_tref %>%
+  ggplot(aes(as.factor(rmse),
+             cstar_tref_residual)) +
+  geom_boxplot(fill = "#5499C7") +
+  labs(#subtitle = "(a) Era: 1982-1999",
+       subtitle = "(b) Era: 2000-2009",
+       x = expression(RMSE ~ 
+                        (mu * mol ~ kg ^ {
+         -1})),
+       y = expression(C[t[ref]] ^ "*" ~ residual~ (mu * mol ~ kg ^ {
+         -1})))
+
+ggsave("ref_res_rmse_e2.png")
 
 
+#red: #CD6155
+#blue: #5499C7
 
 # ggsave(
 #   plot = residual,
