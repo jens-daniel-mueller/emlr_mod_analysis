@@ -311,7 +311,7 @@ section <- map +
   #                                          })))) +
   # guides(fill = guide_colorsteps(barheight = unit(4.5, "cm")))
 
-a <- map +
+a <- section +
   geom_raster(data = df1,
               aes(lon, lat, fill = var_int)) +
   labs(subtitle = "(a) eMLR reconstruction") 
