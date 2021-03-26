@@ -290,7 +290,7 @@ df2 <- df2 %>%
                        right = FALSE))
 
 section <- map +
-  scale_color_viridis_d() 
+  scale_fill_viridis_d() 
   # scale_fill_scico_d(palette = 'imola',
   #                    drop = FALSE,
   #                   name = expression(atop(Delta * C["ant,pos"],
