@@ -20,7 +20,7 @@ editor_options:
 
 ```{r read_params_local, include = FALSE}
 
-Version_ID <- "v_XXX_101_Gruber"
+Version_ID <- "v_XXX"
 
 ```
 
@@ -60,16 +60,26 @@ path_version_figures  <-
 library(scales)
 library(marelac)
 library(gt)
+library(pals)
+library(RColorBrewer)
 ```
 
 # Predictor correlation plots
 
 ```{r predictor_correlation_per_basin, fig.asp=1}
 
+path_version_data_9pre <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX/data/"
+
 GLODAP <-
-  read_csv(paste(path_version_data,
+  read_csv(paste(path_version_data_9pre,
                  "GLODAPv2.2020_MLR_fitting_ready.csv",
                  sep = ""))
+# GLODAP1 <- GLODAP %>%
+#   filter(year <= 1999)
+# GLODAP2 <- GLODAP %>%
+#   filter(year > 1999, year<2010)
+# GLODAP3 <- GLODAP %>%
+#   filter(year >= 2010)
 
 library(GGally)
 library(plotly)
@@ -117,45 +127,92 @@ GLODAP %>%
     "| subsample size: 5 % of",
     nrow(GLODAP %>% filter(basin == i_basin)),
     "subset data"
-  ))
+  )) +
+  theme(
+    plot.subtitle = element_text(size = 12),
+    strip.text = element_text(size = 8)
+  ) 
 )
+ggsave("a.png", width = 7.5, height = 7.5)
+
 }
 
 ##### Specific predictor pairs
+# a <- GLODAP %>%
+#   filter(basin == "Indo-Pacific") %>%
+#   sample_frac(0.05) %>%
+#   ggplot(aes(silicate, silicate_star, col = gamma_slab)) +
+#   geom_point() +
+#   scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+#    theme(legend.key.size = unit(0.5, "cm"),
+#          legend.key.width = unit(0.5, "cm")) +
+#   guides(col = guide_legend(ncol=2)) +
+#   labs(x = expression(Silicate ~ (mu * mol ~ kg ^ {
+#          -1})),
+#        y = expression(Silicate * "*" ~ (mu * mol ~ kg ^ {
+#          -1}))
+#   ) +
+#   theme(
+#     axis.title = element_text(size = 13),
+#     axis.text = element_text(size = 11),
+#     legend.text = element_text(size = 11),
+#     legend.title = element_text(size = 13),
+#     aspect.ratio=1
+#    # legend.key.height = unit(1, "cm")
+#   )
+# a
+# ggsave("b.png")
+
 a <- GLODAP %>%
-  #filter(basin == i_basin) %>%
+ # filter(basin == "Atlantic") %>%
   sample_frac(0.05) %>%
   ggplot(aes(silicate, silicate_star, col = gamma_slab)) +
   geom_point() +
-  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
-  # theme(legend.key.size = unit(0.6, "cm"),
-  #       legend.key.width = unit(0.5, "cm")) +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+   theme(legend.key.size = unit(0.3, "cm"),
+         legend.key.width = unit(0.5, "cm")) +
   guides(col = guide_legend()) +
   labs(x = expression(Silicate ~ (mu * mol ~ kg ^ {
          -1})),
        y = expression(Silicate * "*" ~ (mu * mol ~ kg ^ {
          -1}))
-       )
-
+  ) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(0.5, "cm")
+  )
+a
 b <- GLODAP %>%
-  #filter(basin == i_basin) %>%
+  filter(basin == "Atlantic") %>%
   sample_frac(0.05) %>%
   ggplot(aes(sal, temp, col = gamma_slab)) +
   geom_point() +
-  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
   # theme(legend.key.size = unit(0.6, "cm"),
   #       legend.key.width = unit(0.5, "cm")) +
   guides(col = guide_legend()) +
-  labs(x = "Salinity (g/kg)",
+  labs(x = "Salinity",
        y = "Temperature (°C)"
-       )
+       ) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(1, "cm")
+  )
 
 c <- GLODAP %>%
-  #filter(basin == i_basin) %>%
+  filter(basin == "Atlantic") %>%
   sample_frac(0.05) %>%
   ggplot(aes(nitrate, phosphate, col = gamma_slab)) +
   geom_point() +
-  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
   # theme(legend.key.size = unit(0.6, "cm"),
   #       legend.key.width = unit(0.5, "cm")) +
   guides(col = guide_legend()) +
@@ -163,25 +220,288 @@ c <- GLODAP %>%
          -1})),
        y = expression(Phosphate ~ (mu * mol ~ kg ^ {
          -1}))
-       )
+       ) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(1, "cm")
+  )
 
 d <- GLODAP %>%
-  #filter(basin == i_basin) %>%
+  filter(basin == "Atlantic") %>%
   sample_frac(0.05) %>%
   ggplot(aes(temp, phosphate_star, col = gamma_slab)) +
   geom_point() +
-  scale_color_viridis_d(name = "Gamma slabs", direction = -1) +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
   # theme(legend.key.size = unit(0.6, "cm"),
   #       legend.key.width = unit(0.5, "cm")) +
   guides(col = guide_legend()) +
   labs(x = "Temperature (°C)",
        y = expression(Phosphate * "*" ~ (mu * mol ~ kg ^ {
          -1
-       })))
+       }))) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(1, "cm")
+  )
 
-ggarrange(a, b, c, d, nrow = 2, ncol = 2, align = "hv", common.legend = TRUE, legend = "right")
+e <- GLODAP %>%
+  filter(basin == "Indo-Pacific") %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(silicate, silicate_star, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = expression(Silicate ~ (mu * mol ~ kg ^ {
+         -1})),
+       y = expression(Silicate * "*" ~ (mu * mol ~ kg ^ {
+         -1}))
+  ) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(1, "cm")
+  )
 
-ggsave("specific_correlation_pairs.png", width = 8, height = 6.6)
+f <- GLODAP %>%
+  filter(basin == "Indo-Pacific") %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(sal, temp, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = "Salinity",
+       y = "Temperature (°C)"
+       ) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(1, "cm")
+  )
+
+g <- GLODAP %>%
+  filter(basin == "Indo-Pacific") %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(nitrate, phosphate, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = expression(Nitrate ~ (mu * mol ~ kg ^ {
+         -1})),
+       y = expression(Phosphate ~ (mu * mol ~ kg ^ {
+         -1}))
+       ) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(1, "cm")
+  )
+
+h <- GLODAP %>%
+  filter(basin == "Indo-Pacific") %>%
+  sample_frac(0.05) %>%
+  ggplot(aes(temp, phosphate_star, col = gamma_slab)) +
+  geom_point() +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+  # theme(legend.key.size = unit(0.6, "cm"),
+  #       legend.key.width = unit(0.5, "cm")) +
+  guides(col = guide_legend()) +
+  labs(x = "Temperature (°C)",
+       y = expression(Phosphate * "*" ~ (mu * mol ~ kg ^ {
+         -1
+       }))) +
+  theme(
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13),
+    aspect.ratio=1,
+    legend.key.height = unit(1, "cm")
+  )
+
+ggarrange(NULL,NULL,a, b, c, d, NULL,NULL,e,f,g,h,nrow = 6, ncol = 2, heights = c(0.17, 1, 1, 0.17,1,1), align = "hv", common.legend = FALSE, legend = "right")
+
+ggsave("specific_correlation_pairs.png", width = 8, height = 13)
+
+```
+
+
+# GLODAP era year
+
+```{r GLODAP_era_year}
+
+path_version_data_standard <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_101_Gruber/data/"
+path_version_data_9pre <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_101_9pre_vif20_m10/data/"
+path_version_data_9pre_era <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_101_9pre_vif20_m10_12-08/data/"
+
+GLODAP_standard <- read_csv(paste(path_version_data_standard,
+                 "GLODAPv2.2020_MLR_fitting_ready.csv",
+                 sep = "")) %>%
+  select(year:gamma_slab) %>%
+  unique()
+
+GLODAP_9pre <- read_csv(paste(path_version_data_9pre,
+                 "GLODAPv2.2020_MLR_fitting_ready.csv",
+                 sep = "")) %>%
+  select(year:gamma_slab) %>%
+  unique()
+
+GLODAP_9pre_era <- GLODAP <-
+  read_csv(paste(path_version_data_9pre_era,
+                 "GLODAPv2.2020_MLR_fitting_ready.csv",
+                 sep = ""))
+
+GLODAP_combined <- semi_join(GLODAP_standard, GLODAP_9pre) %>%
+  mutate(estimate = "9 predictors")
+GLODAP_anti <- anti_join(GLODAP_standard, GLODAP_9pre) %>%
+  mutate(estimate = "Removed with 9 predictors")
+
+GLODAP_all <- bind_rows(GLODAP_combined, GLODAP_anti)
+
+# filter out due to 7 -> 9 predictors
+a <- map +
+  geom_raster(data = GLODAP_all %>%
+                filter(era == "2000-2009"), aes(lon, lat, fill = estimate)) +
+  scale_fill_manual(values = c("#17202A", "#E41A1C"), name = "Observations") +
+  theme(
+    plot.subtitle = element_text(size = 14),
+    axis.title = element_blank(),
+    axis.text = element_text(size = 12),
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  ) +
+  labs(
+    # x = expression(Longitude ~ (degree * N)),
+    # y = expression(Latitude ~ (degree * N)),
+    subtitle = "Era: 2000-2009"
+  )
+
+a
+
+b <- map +
+  geom_raster(data = GLODAP_all %>%
+                filter(era == "2010-2019"), aes(lon, lat, fill = estimate)) +
+  scale_fill_manual(values = c("#17202A", "#E41A1C"), name = "Observations") +
+  theme(
+    plot.subtitle = element_text(size = 14),
+    axis.title = element_blank(),
+    axis.text = element_text(size = 12),
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12)
+  ) +
+  labs(
+    # x = expression(Longitude ~ (degree * N)),
+    # y = expression(Latitude ~ (degree * N)),
+    subtitle = "Era: 2010-2019"
+  )
+
+b
+
+figure <- ggarrange(a,b, ncol = 1, common.legend = TRUE, legend = "right")
+annotate_figure(figure,
+  left = text_grob(expression(Latitude ~ (degree * N)),rot = 90, y= 0.52, size = 14),
+  bottom = text_grob(expression(Longitude ~ (degree * N)), x = 0.44, size = 14))
+
+
+ggsave("era_pre.png", width =8, height = 5.7)
+
+### add due to era separation
+
+c <- map +
+  geom_raster(data = GLODAP_9pre_era %>% 
+  filter(year %in% c(2010,2011,2012)), aes(lon, lat, fill = as.factor(year))) +
+  geom_raster(data = GLODAP_9pre %>%
+                filter(era == unique(GLODAP_9pre$era)[2]), aes(lon, lat)) +
+  scale_fill_manual(values = c("#CB334C", "#F88D51", "#FEE593"), name = "Year") +
+  theme(
+    plot.subtitle = element_text(size = 13),
+    axis.title = element_blank(),
+    axis.text = element_text(size = 11),
+    legend.position = "right",
+    legend.title = element_text(size = 13),
+    legend.text = element_text(size = 11)
+  ) +
+  labs(subtitle = "Era: 2000-2012")
+
+c
+
+d <- map +
+  geom_raster(data = GLODAP_9pre_era %>%
+                filter(year %in% c(2008, 2009)), aes(lon, lat, fill = as.factor(year))) +
+  geom_raster(data = GLODAP_9pre %>%
+                filter(era == unique(GLODAP_9pre$era)[3]), aes(lon, lat)) +
+  scale_fill_manual(values = c("#88CFA4", "#00a3cc")) +
+  theme(
+    plot.subtitle = element_text(size = 13),
+    axis.title = element_blank(),
+    axis.text = element_text(size = 11),
+    legend.position = "right",
+    legend.title = element_blank(),
+    legend.text = element_text(size = 11)
+  ) +
+  labs(subtitle = "Era: 2008-2019")
+
+d
+
+figure <- ggarrange(c,d, ncol = 1,legend = "right")
+
+annotate_figure(figure,
+  left = text_grob(expression(Latitude ~ (degree * N)),rot = 90, y= 0.52, size = 13),
+  bottom = text_grob(expression(Longitude ~ (degree * N)), x = 0.44, size = 13))
+
+ggsave("era_over_2.png", width = 7, height = 5.7)
+
+
+#"#9E0142" "#CB334C" "#E95D47" "#F88D51" "#FDBE6E" "#FEE593" "#FFFFBF" "#EAF69E" "#BEE5A0"
+#"#88CFA4" "#54AEAC" "#397EB8" "#5E4FA2"
+
+#######each year
+e <- map +
+  geom_raster(data = GLODAP %>%
+                filter(year == c(2014)), aes(lon, lat, fill = as.factor(year))) +
+  scale_fill_viridis_d() +
+  theme(legend.position = "right",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 10),
+        plot.subtitle=element_text(size= 14),
+        legend.key.size = unit(0.55, "cm")) +
+  labs(subtitle = "Era: 1997-2007")
+
+e
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_101_9pre_vif20_m10/data/"
+lm_best <-
+   read_csv(paste(path_version_data,
+                  "lm_best.csv",
+                  sep = ""))
+
+unique(lm_best$basin)
+
+lm_best1 <- lm_best %>%
+  filter(eras == "2000-2009 --> 2010-2019")
 
 ```
 
@@ -192,8 +512,8 @@ ggsave("specific_correlation_pairs.png", width = 8, height = 6.6)
 
 path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_118_my/data/"
 
-lm_all_fitted_wide_eras %>% 
-  write_csv(paste(path_version_data,
+lm_all_fitted_wide_eras <- 
+  read_csv(paste(path_version_data,
                   "lm_all_fitted_wide_eras.csv",
                   sep = ""))
 
@@ -221,6 +541,7 @@ lm_all_fitted_wide_eras %>%
 
 ```{r read_cant_inv_file, eval=FALSE}
 
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_9pre_vif20_m10_rank_12-08_tref_gamma/data/"
 cant_inv_JDM <-
   read_csv(paste(path_version_data,
                  "cant_inv.csv",
@@ -260,12 +581,75 @@ cant_inv_wide <- cant_inv_wide %>%
 
 ```
 
+```{r sfc_inv}
+
+inv <- function(df) {
+
+  for (i_inventory_depth in params_global$inventory_depths) {
+
+  # filter integration depth
+  df_sub <- df %>%
+    filter(depth <= i_inventory_depth,
+          gamma_slab == "(-Inf,26]")
+
+  depth_level_volume <- tibble(
+    depth = unique(df_sub$depth)) %>%
+    arrange(depth)
+
+  # determine depth level volume of each depth layer
+  depth_level_volume <- depth_level_volume %>%
+    mutate(layer_thickness_above = replace_na((depth - lag(depth)) / 2, 0),
+           layer_thickness_below = replace_na((lead(depth) - depth) / 2, 0),
+           layer_thickness = layer_thickness_above + layer_thickness_below) %>%
+    select(-c(layer_thickness_above,
+              layer_thickness_below))
+
+  df_sub <- full_join(df_sub, depth_level_volume)
+
+  # calculate cant layer inventory
+  df_sub <- df_sub %>%
+    mutate(cant_layer_inv = cant * layer_thickness * 1.03,
+           cant_pos_layer_inv = cant_pos * layer_thickness * 1.03) %>%
+    select(-layer_thickness)
+
+  # sum up layer inventories to column inventories
+  df_sub_inv <- df_sub %>%
+    group_by(lon, lat, basin_AIP, eras) %>%
+    summarise(
+      cant_pos_inv = sum(cant_pos_layer_inv, na.rm = TRUE) / 1000,
+      cant_inv     = sum(cant_layer_inv, na.rm = TRUE) / 1000
+    ) %>%
+    ungroup()
+
+  df_sub_inv <- df_sub_inv %>%
+    mutate(inv_depth = i_inventory_depth)
+
+  if (exists("df_inv")) {
+    df_inv <- bind_rows(df_inv, df_sub_inv)
+  }
+
+  if (!exists("df_inv")) {
+    df_inv <- df_sub_inv
+  }
+
+
+  }
+
+  return(df_inv)
+
+}
+
+cant_inv_JDM <- inv(cant_3d_gamma)
+cant_inv_M <- inv(cant_M)
+
+```
+
 ```{r cant_pos_inventory_map, fig.asp=0.5, eval=FALSE}
 
 #for (i_eras in unique(cant_inv_long$eras)) {
 #  for (i_estimate in unique(cant_inv_long$estimate)) {
 
-i_eras <- "2000-2009 --> 2010-2019"
+i_eras <- "2000-2012 --> 2008-2019"
 #i_eras <- "1982-1999 --> 2000-2009"
 
 df1 <-
@@ -274,7 +658,8 @@ df2 <-
   cant_inv_long %>% filter(estimate == unique(cant_inv_long$estimate)[2], eras == i_eras)
 
 var = "cant_pos_inv"
-breaks <- c(0, 2, 4, 6, 8, 10, Inf)
+#breaks <- c(0,2,4,6,8,10,12,14,Inf)
+breaks <- c(0,2,4,6,8,10,Inf)
 var <- sym(var)
 breaks_n <- length(breaks) - 1
 
@@ -289,8 +674,17 @@ df2 <- df2 %>%
                        breaks,
                        right = FALSE))
 
+library(pals)
+
 section <- map +
-  scale_fill_viridis_d() 
+  scale_fill_manual(values=as.vector(ocean.deep(6)),
+                    drop = FALSE,
+                    name = expression(atop(Delta*C[ant],
+                                                 (mol~m^{-2})))) +
+  # scale_fill_viridis_d(name = expression(atop(Delta * C["ant,pos"],
+  #                                         (mol ~ m ^ {
+  #                                            -2
+  #                                          })))) +
   # scale_fill_scico_d(palette = 'imola',
   #                    drop = FALSE,
   #                   name = expression(atop(Delta * C["ant,pos"],
@@ -309,7 +703,13 @@ section <- map +
   #                                          (mol ~ m ^ {
   #                                            -2
   #                                          })))) +
-  # guides(fill = guide_colorsteps(barheight = unit(4.5, "cm")))
+   guides(fill = guide_colorsteps(barheight = unit(5.5, "cm"))) +
+  theme(
+        legend.text = element_text(size = 12.5),
+        legend.title = element_text(size = 16),
+        plot.subtitle = element_text(size= 16),
+        axis.text = element_text(size= 12.5))
+  # + theme(legend.position = "bottom")
 
 a <- section +
   geom_raster(data = df1,
@@ -323,45 +723,96 @@ b <- section +
               aes(lon, lat, fill = var_int)) +
   labs(subtitle = "(b) Model truth") 
 
-a / b +
-  plot_layout(guides = "collect")
+b
 
-ggsave("2_Pac_inv.png")
+library(ggpubr)
+figure <- ggarrange(a, b, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE,legend = "right")
+
+figure <- ggarrange(c1, c2, nrow = 1, ncol = 2, align = "hv", common.legend = TRUE,legend = "right")
+
+annotate_figure(figure,
+  left = text_grob(expression(Latitude ~ (degree * N)),rot = 90, y= 0.52, size = 19),
+  bottom = text_grob(expression(Longitude ~ (degree * E)), x = 0.44, size = 19))
+
+ggsave("2_Pac_inv_over.png", width = 7.6, height = 6.7)
+ggsave("2_Pac_inv_offset.png", width = 12, height = 3.1)
 
 ########## Offset
 
-breaks <- c(-Inf, -6, -4, -2, 0, 2, 4, 6, Inf)
+breaks <- c(-Inf, -4, -2, 0, 2, 4, Inf)
+
+library(RColorBrewer)
 
 section_o <- map +
-  scale_fill_scico_d(palette = 'vik',
-                    drop = FALSE,
+  scale_fill_manual(values = colorRampPalette(brewer.pal(11, "RdBu"))(13)[c(12,10,8,6,4,2)],
                     name = expression(atop(Bias~Delta*C[ant],
-                                                 (mol~m^{-2})))) +
-  # scale_fill_manual(values=as.vector(ocean.balance(7)),
-  #                   drop = FALSE,
-  #                   name = expression(atop(Bias~Delta*C[ant],
+                                                 (mol~m^{-2}))),
+                    drop = FALSE) +
+        theme(
+        legend.text = element_text(size = 12.5),
+        legend.title = element_text(size = 16),
+        plot.subtitle=element_text(size= 16),
+        axis.text = element_text(size= 12.5)) +
+#   scale_fill_scico_d(palette = 'vik',
+#                     drop = FALSE,
+#                     name = expression(atop(Delta*C[ant],
+#                                                  (mol~m^{-2})))) +
+  # scale_fill_manual(values=c("#263279", "#166FBB", "#73A8BD", "#D9DDDE", "#E8D8D3", "#CF8971", "#B23727", "#670D23"),
+  #                   name = expression(atop(Delta*C[ant],
   #                                                (mol~m^{-2})))) +
       # scale_fill_scico_d(palette = "vik", drop = FALSE,
       #                    name = expression(atop(Bias~Delta*C[ant],
       #                                           (mol~m^{-2})))) +
-      guides(fill = guide_colorsteps(barheight = unit(4.5, "cm")))
+      guides(fill = guide_colorsteps(barheight = unit(5.5, "cm")))
 
 c <- section_o +
   geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
                   aes(lon, lat, fill = cut(!!sym("cant_pos_inv_offset"), breaks))) +
   labs(subtitle = "(c) Bias")
 
+c2 <- section_o +
+  geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
+                  aes(lon, lat, fill = cut(!!sym("cant_pos_inv_offset"), breaks))) +
+  labs(subtitle = "(d) Bias - SO separation applied")
+
+c3 <- section_o +
+  geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
+                  aes(lon, lat, fill = cut(!!sym("cant_pos_inv_offset"), breaks))) +
+  labs(subtitle = "(c) Constant & GLODAP")
+
+c4 <- section_o +
+  geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
+                  aes(lon, lat, fill = cut(!!sym("cant_pos_inv_offset"), breaks))) +
+  labs(subtitle = "(d) Variable & GLODAP")
+
 c
+
+
+ggsave("inv_cr.png", width = 7.6, height = 3.4)
 
 d <- section_o +
   geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
                   aes(lon, lat, fill = cut(!!sym("cant_pos_inv_offset"), breaks))) +
-  labs(subtitle = "(d) Bias - Constant & random subset")
+  labs(subtitle = "(d) Bias - SO separation applied")
+d
+
+#(d) Bias - SO separation applied
 
 c / d +
   plot_layout(guides = "collect")
 
-ggsave("vg_inv_off.png")
+ggsave("inv_cr.png", width = 8, height = 6.5)
+
+
+
+library(ggpubr)
+figure <- ggarrange(c1, c3, nrow = 2, ncol = 1, align = "hv", common.legend = TRUE,legend = "right")
+
+annotate_figure(c,
+  left = text_grob(expression(Latitude ~ (degree * N)),rot = 90, y= 0.52, size = 19),
+  bottom = text_grob(expression(Longitude ~ (degree * E)), x = 0.44, size = 19))
+
+ggsave("2_Pac_inv_over_offset.png", width = 7.6, height = 6.5)
 
 ```
 
@@ -371,6 +822,9 @@ ggsave("vg_inv_off.png")
 ## Cant - positive only
 
 ```{r read_cant_zonal_file, eval=FALSE}
+
+#path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_118_Gruber_gam/data/"
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_9pre_vif10_m10_rank_atminc_gamma/data/"
 
 cant_zonal_JDM <-
   read_csv(paste(path_version_data,
@@ -428,6 +882,8 @@ library(patchwork)
 i_eras <- "2000-2009 --> 2010-2019"
 #i_eras <- "1982-1999 --> 2000-2009"
 i_basin_AIP <- "Pacific"
+i_basin_AIP <- "Atlantic"
+i_basin_AIP <- "Indian"
 
 p_section_zonal <- function(df,
            var = "cant_pos",
@@ -436,8 +892,7 @@ p_section_zonal <- function(df,
            gamma = "gamma_mean",
            plot_slabs = "y",
            drop_slabs = 1,
-           breaks = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,Inf),
-           legend_title = expression(atop(Delta * C[ant,pos],
+           legend_title = expression(atop(Bias~Delta * C[ant,pos],
                                           (mu * mol ~ kg ^ {-1}))),
            subtitle_text = "") {
 
@@ -447,7 +902,7 @@ p_section_zonal <- function(df,
     # plot base section
     section <- df %>%
       ggplot() +
-      guides(fill = guide_colorsteps(barheight = unit(8, "cm"))) +
+      guides(fill = guide_colorsteps(barheight = unit(5.5, "cm"))) +
       scale_y_reverse() +
       scale_x_continuous(breaks = seq(-100, 100, 20),
                          limits = c(-85,85))
@@ -455,22 +910,39 @@ p_section_zonal <- function(df,
     # plot layer for chose color scale (default continuous)
     if (col == "continuous") {
 
-      breaks_n <- length(breaks) - 1
-
       section <- section +
         geom_contour_filled(aes(lat, depth, z = !!var),
-                            breaks = breaks) +
-        scale_fill_manual(values = p_gruber_rainbow(breaks_n),
-                          drop = FALSE,
-                          name = legend_title)
+                            breaks = c(0,1,2,3,4,5,6,7,8,9,10,11,12,Inf)) +
+        scale_fill_manual(values=as.vector(ocean.deep(13)),
+                    drop = FALSE,
+                    name = expression(atop(Delta*C[ant],
+                                                 (mu * mol ~ kg ^ {-1})))) +
+        theme(
+          axis.title = element_text(size = 16.5),
+          axis.text = element_text(size = 11.5),
+        legend.text = element_text(size = 11.5),
+        legend.title = element_text(size = 16.5))
     } else {
 
       section <- section +
+        # geom_contour_filled(aes(lat, depth, z = !!var),
+        #                     breaks = c(-Inf, -4, -3, -2, -1, 0, 1, 2, 3, 4, Inf)) +
         geom_contour_filled(aes(lat, depth, z = !!var),
-                            breaks = breaks) +
-        scale_fill_scico_d(palette = "vik",
-                           drop = FALSE,
-                           name = legend_title)
+                            breaks = c(-Inf,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,Inf)) +
+        scale_fill_manual(
+         values = colorRampPalette(brewer.pal(11, "RdBu"))(37)[c(36,34,32,30,28,26,24,22,20,18,16,14,12,10,8,6,4,2)],
+          # values = colorRampPalette(brewer.pal(11, "RdBu"))(21)[c(20, 18, 16, 14, 12, 10, 8, 6, 4, 2)],
+          drop = FALSE,
+          name = expression(atop(Bias ~ Delta * C[ant],
+                                 (mu * mol ~ kg ^ {
+                                   -1
+                                 })))
+        ) +
+        theme(
+          axis.title = element_text(size = 16.5),
+          axis.text = element_text(size = 11.5),
+        legend.text = element_text(size = 11.5),
+        legend.title = element_text(size = 16.5))
 
     }
 
@@ -514,7 +986,8 @@ p_section_zonal <- function(df,
       theme(
         axis.title.x = element_blank(),
         axis.text.x = element_blank(),
-        axis.ticks.x = element_blank()
+        axis.ticks.x = element_blank(),
+        plot.subtitle=element_text(size = 16.5)
       )
 
     # cut deep water section
@@ -524,8 +997,7 @@ p_section_zonal <- function(df,
         expand = 0,
         ylim = c(params_global$plotting_depth, 500)
       ) +
-      labs(x = expression(latitude~(degree*N)), y = "Depth (m)")
-
+      labs(x = expression(Latitude~(degree*N)), y = "Depth (m)")
 
     # combine surface and deep water section
     surface / deep +
@@ -541,11 +1013,16 @@ p_section_zonal <- function(df,
               eras == i_eras
             ),
           var = "cant_pos_mean",
-          subtitle_text = "(a) eMLR reconstruction",
+          #subtitle_text = "(b) eMLR reconstruction    Atl"
+          #subtitle_text = "(c)                                Indian"
+          #subtitle_text = "(a) VIF: 50  M: 10                        Indian"
+          subtitle_text = "(a) Standard"
         )
+    
     a
     
-    ggsave("2_Pac_zon_em.png", width = 6.33, height =  4.54)
+    ggsave("c.png", width = 5.4, height = 3.65)
+    ggsave("2_Pac_zon_em.png", width = 6.8, height = 4.5)
    
      b <- p_section_zonal(
           df = cant_zonal_long %>%
@@ -555,24 +1032,547 @@ p_section_zonal <- function(df,
               eras == i_eras
             ),
           var = "cant_pos_mean",
-          subtitle_text = "(b) Model truth"
+          #subtitle_text = "(d) Model truth"
+          subtitle_text = "(f) "
         )
     
      b
-     
-     ggsave("2_Pac_zon_mo.png", width = 6.33, height =  4.54)
+     ggsave("f.png", width = 5.4, height = 3.65)
+     ggsave("2_Pac_zon_mo.png", width = 6.8, height = 4.5)
      
 ########### Offset
-      p_section_zonal(
-        df = cant_zonal_wide %>%
-          filter(basin_AIP == i_basin_AIP,
-                 eras == i_eras),
+     
+     i_basin_AIP <- "Pacific"
+i_basin_AIP <- "Atlantic"
+i_basin_AIP <- "Indian"
+     
+     p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(basin_AIP == i_basin_AIP,
+                eras == i_eras),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       subtitle_text = "(a) Zonal mean bias   Atlantic")
+       #subtitle_text = "(j) Modified + Overlapped"
+       #subtitle_text = "(g) VIF: 10  M: 10       "
+       #subtitle_text = "(c)                                Indian"
+       #subtitle_text = "(l)         "
+     )
+     
+     ggsave("a.png", width = 5.4, height = 3.65)
+     
+     ggsave("a.png", width = 15, height = 20)
+
+```
+
+```{r cant_pos_zonal_mean_section_vif, fig.asp=0.6, eval=FALSE}
+
+library(patchwork)
+i_eras <- "2000-2009 --> 2010-2019"
+#i_eras <- "1982-1999 --> 2000-2009"
+
+p_section_zonal <- function(df,
+           var = "cant_pos",
+           var_name = var,
+           col = "continuous",
+           gamma = "gamma_mean",
+           plot_slabs = "y",
+           drop_slabs = 1,
+           legend_title = expression(atop(Delta * C[ant,pos],
+                                          (mu * mol ~ kg ^ {-1}))),
+           subtitle_text = "") {
+
+    var <- sym(var)
+    gamma <- sym(gamma)
+
+    # plot base section
+    section <- df %>%
+      ggplot() +
+      guides(fill = guide_colorsteps(barheight = unit(8, "cm"))) +
+      scale_y_reverse() +
+      scale_x_continuous(breaks = seq(-100, 100, 20),
+                         limits = c(-85,85))
+
+    # plot layer for chose color scale (default continuous)
+    if (col == "continuous") {
+
+      section <- section +
+        geom_contour_filled(aes(lat, depth, z = !!var),
+                            breaks = c(0,1,2,3,4,5,6,7,8,9,10,11,12,Inf)) +
+        scale_fill_manual(values=as.vector(ocean.deep(13)),
+                    drop = FALSE,
+                    name = expression(atop(Delta*C[ant],
+                                                 (mu * mol ~ kg ^ {-1})))) +
+        theme(
+        legend.text = element_text(size = 10.5),
+        legend.title = element_text(size = 18))
+    } else {
+
+      section <- section +
+        # geom_contour_filled(aes(lat, depth, z = !!var),
+        #                     breaks = c(-Inf,-6,-4,-2,0,2,4,6,Inf)) +
+        geom_contour_filled(aes(lat, depth, z = !!var),
+                            breaks = c(-Inf,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,Inf)) +
+      scale_fill_manual(
+        values = colorRampPalette(brewer.pal(11, "RdBu"))(37)[c(36,34,32,30,28,26,24,22,20,18,16,14,12, 10, 8, 6, 4, 2)],
+        drop = FALSE,
+        name = expression(atop(Delta * C[ant],
+                               (mu * mol ~ kg ^ {-1})))
+      ) +
+        theme(
+        legend.text = element_text(size = 10.5),
+        legend.title = element_text(size = 18))
+
+    }
+
+
+    # plot isoneutral density lines if chosen (default yes)
+    if (plot_slabs == "y") {
+
+      # select slab breaks for plotted basin
+      if (i_basin_AIP == "Atlantic") {
+        slab_breaks <- params_local$slabs_Atl
+      } else {
+        slab_breaks <- params_local$slabs_Ind_Pac
+      }
+
+
+      section <- section  +
+        geom_hline(yintercept = params_local$depth_min,
+                   col = "white",
+                   linetype = 2) +
+        geom_contour(aes(lat, depth, z = !!gamma),
+                     breaks = slab_breaks,
+                     col = "black") +
+        geom_text_contour(
+          aes(lat, depth, z = !!gamma),
+          breaks = slab_breaks,
+          col = "black",
+          skip = drop_slabs
+        )
+
+    }
+
+    # cut surface water section
+    surface <-
+      section +
+      coord_cartesian(
+        expand = 0,
+        ylim = c(500, 0)
+      ) +
+      labs(y = "Depth (m)",
+           subtitle = subtitle_text) +
+      theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.subtitle=element_text(size = 18)
+        # axis.title.y = element_blank(),
+        # axis.text.y = element_blank(),
+        # axis.ticks.y = element_blank()
+      ) 
+
+    # cut deep water section
+    deep <-
+      section +
+      coord_cartesian(
+        expand = 0,
+        ylim = c(params_global$plotting_depth, 500)
+      ) +
+      labs(x = expression(latitude~(degree*N)), y = "Depth (m)") 
+      # theme(
+      #   axis.title.x = element_blank(),
+      #   axis.text.x = element_blank(),
+      #   axis.ticks.x = element_blank()
+      #   axis.title.y = element_blank(),
+      #   axis.text.y = element_blank(),
+      #   axis.ticks.y = element_blank()
+      # )
+
+    # combine surface and deep water section
+    surface / deep +
+      plot_layout(guides = "collect")
+
+}
+    
+########### Offset
+   p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(basin_AIP == "Atlantic",
+                eras == i_eras),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(m) VIF: 20  M:5"
+     )
+   ggsave("vif_20_atl_m5.png", width = 6.5, height = 4.5)
+   
+   p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(basin_AIP == "Pacific",
+                eras == i_eras),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(n)"
+     ) 
+      ggsave("vif_20_pac_m5.png", width = 6.5, height = 4.5)
+   
+   p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(basin_AIP == "Indian",
+                eras == i_eras),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(o)"
+     ) 
+     ggsave("vif_20_ind_m5.png", width = 6.5, height =  4.5)
+
+```
+
+```{r cant_pos_zonal_mean_section_sfc, fig.asp=0.6, eval=FALSE}
+
+library(patchwork)
+i_eras <- "2000-2009 --> 2010-2019"
+#i_eras <- "1982-1999 --> 2000-2009"
+i_basin_AIP <- "Pacific"
+i_basin_AIP <- "Atlantic"
+i_basin_AIP <- "Indian"
+
+
+p_section_zonal <- function(df,
+                            var = "cant_pos",
+                            var_name = var,
+                            col = "continuous",
+                            gamma = "gamma_mean",
+                            plot_slabs = "y",
+                            drop_slabs = 1,
+                            legend_title = expression(atop(Delta * C[ant, pos],
+                                                           (mu * mol ~ kg ^ {
+                                                             -1
+                                                           }))),
+                            subtitle_text = "") {
+  var <- sym(var)
+  gamma <- sym(gamma)
+  
+  # plot base section
+  section <- df %>%
+    ggplot() +
+    guides(fill = guide_colorsteps(barheight = unit(4.5, "cm"))) +
+    scale_y_reverse() +
+    scale_x_continuous(breaks = seq(-100, 100, 20),
+                       limits = c(-85, 85))
+  
+  # plot layer for chose color scale (default continuous)
+  if (col == "continuous") {
+    section <- section +
+      geom_contour_filled(aes(lat, depth, z = !!var),
+                          breaks = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, Inf)) +
+      scale_fill_manual(
+        values = as.vector(ocean.deep(13)),
+        drop = FALSE,
+        name = expression(atop(Bias ~ Delta * C[ant],
+                               (mu * mol ~ kg ^ {
+                                 -1
+                               })))
+      )
+  } else {
+    section <- section +
+      # geom_contour_filled(aes(lat, depth, z = !!var),
+      #                       breaks = c(-Inf, -4, -3, -2, -1, 0, 1, 2, 3, 4, Inf)) +
+      geom_contour_filled(
+        aes(lat, depth, z = !!var),
+        breaks = c(-Inf, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, Inf)
+      ) +
+      scale_fill_manual(
+        values = colorRampPalette(brewer.pal(11, "RdBu"))(37)[c(36, 34, 32, 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2)],
+        # values = colorRampPalette(brewer.pal(11, "RdBu"))(21)[c(20, 18, 16, 14, 12, 10, 8, 6, 4, 2)],
+        drop = FALSE,
+        name = expression(atop(Bias ~ Delta * C[ant],
+                               (mu * mol ~ kg ^ {-1})))
+   )
+    
+  }
+  
+  
+  # plot isoneutral density lines if chosen (default yes)
+  if (plot_slabs == "y") {
+    # select slab breaks for plotted basin
+    if (i_basin_AIP == "Atlantic") {
+      slab_breaks <- params_local$slabs_Atl
+    } else {
+      slab_breaks <- params_local$slabs_Ind_Pac
+    }
+    
+    
+    section <- section  +
+      geom_hline(
+        yintercept = params_local$depth_min,
+        col = "white",
+        linetype = 2
+      ) +
+      geom_contour(aes(lat, depth, z = !!gamma),
+                   breaks = slab_breaks,
+                   col = "black") +
+      geom_text_contour(
+        aes(lat, depth, z = !!gamma),
+        breaks = slab_breaks,
+        col = "black",
+        skip = drop_slabs
+      )
+    
+  }
+  
+  # cut surface water section
+  surface <-
+    section +
+    coord_cartesian(expand = 0,
+                    ylim = c(150, 0)) +
+     labs(x = expression(Latitude~(degree*N)),
+          y = "Depth (m)",
+          subtitle = subtitle_text) +
+    theme(
+      plot.subtitle = element_text(size = 10),
+      axis.title = element_text(size = 10),
+      axis.text = element_text(size = 8),
+      legend.title = element_text(size = 10),
+      legend.text = element_text(size = 8)
+    )
+  #
+  # # cut deep water section
+  # deep <-
+  #   section +
+  #   coord_cartesian(
+  #     expand = 0,
+  #     ylim = c(params_global$plotting_depth, 500)
+  #   ) +
+  # labs(x = expression(latitude~(degree*N)), y = "Depth (m)")
+  
+  surface
+  # combine surface and deep water section
+  # surface / deep +
+  #   plot_layout(guides = "collect")
+  
+}
+    
+    
+########### Offset
+     a <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(
+           basin_AIP == "Atlantic",
+           eras == i_eras,
+           gamma_mean <= 26,
+           depth <= 150
+         ),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(a) Rev. fac.              Atlantic"
+     )
+     a
+     ggsave("a.png", width = 3.36, height = 1.4)
+     #ggsave("a.png", width = 5, height = 5)
+     
+     b <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(
+           basin_AIP == "Pacific",
+           eras == i_eras,
+           gamma_mean <= 26,
+           depth <= 150
+         ),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(b)                             Pacific"
+     )
+     b
+     ggsave("b.png", width = 3.36, height = 1.4)
+
+     c <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(basin_AIP == "Indian",
+                eras == i_eras, 
+                 gamma_mean <= 26, 
+                 depth <= 150),
         var = "cant_pos_mean_offset",
-        breaks = params_global$breaks_cant_offset,
         col = "divergent",
-        subtitle_text = "(c) Bias")
+        #subtitle_text = "(d) Bias - SO separation applied")
+        subtitle_text = "(c)                              Indian")
+     
+     c
+     ggsave("c.png", width = 3.36, height = 1.4)
+     
+      d <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(
+           basin_AIP == "Atlantic",
+           eras == i_eras,
+           gamma_mean <= 26,
+           depth <= 150
+         ),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(d) Atm. eq."
+     )
+      d
+      ggsave("d.png", width = 3.36, height = 1.4)
+     
+     e <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(
+           basin_AIP == "Pacific",
+           eras == i_eras,
+           gamma_mean <= 26,
+           depth <= 150
+         ),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(e) "
+     )
+     
+     e
+     ggsave("e.png", width = 3.36, height = 1.4)
+          
+     f <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(basin_AIP == "Indian",
+                eras == i_eras, 
+                 gamma_mean <= 26, 
+                 depth <= 150),
+        var = "cant_pos_mean_offset",
+        col = "divergent",
+        #subtitle_text = "(d) Bias - SO separation applied")
+        subtitle_text = "(f)")
+     
+     f
+     ggsave("f.png", width = 3.36, height = 1.4)
+     
+    g <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(
+           basin_AIP == "Atlantic",
+           eras == i_eras,
+           gamma_mean <= 26,
+           depth <= 150
+         ),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(g) Atm. pCO2 inc."
+     )
+    
+    g
+    ggsave("g.png", width = 3.36, height = 1.4)
+     
+     h <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(
+           basin_AIP == "Pacific",
+           eras == i_eras,
+           gamma_mean <= 26,
+           depth <= 150
+         ),
+       var = "cant_pos_mean_offset",
+       col = "divergent",
+       #subtitle_text = "(d) Bias - SO separation applied")
+       subtitle_text = "(h) "
+     )
+     
+     h
+     ggsave("h.png", width = 3.36, height = 1.4)
+          
+     i <- p_section_zonal(
+       df = cant_zonal_wide %>%
+         filter(basin_AIP == "Indian",
+                eras == i_eras, 
+                 gamma_mean <= 26, 
+                 depth <= 150),
+        var = "cant_pos_mean_offset",
+        col = "divergent",
+        #subtitle_text = "(d) Bias - SO separation applied")
+        subtitle_text = "(i) ")
+     
+     i
+     ggsave("i.png", width = 3.36, height = 1.4)
+     
+     
+     a1 <- a
+      a1 <- a1 +
+             theme(
+        axis.title.y = element_blank()
+      )
+      g1 <- g
+      g1 <- g1 +
+             theme(
+               axis.title.x = element_blank(),
+        axis.title.y = element_blank()
+      )
       
-      ggsave("so_Pac_zon_off.png", width = 6.33, height =  4.54)
+     
+     b1 <- b
+      b1 <-b1 +
+             theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        plot.margin=grid::unit(c(0,0,0,0), "mm")
+      )
+     c1 <- c
+     c1 <-c1 +
+       theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+      e1 <- e
+     e1 <-e1 +
+       theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        plot.margin=grid::unit(c(0,0,0,0), "mm"))
+    f1 <- f
+     f1 <-f1 +
+       theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+    h1 <- h
+     h1 <-h1 +
+       theme(
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank(),
+        plot.margin=grid::unit(c(0,0,0,0), "mm"))
+    i1 <- i
+     i1 <-i1 +
+       theme(
+         axis.title.x = element_blank(),
+        axis.title.y = element_blank(),
+        axis.text.y = element_blank(),
+        axis.ticks.y = element_blank())
+     
+library(ggpubr)       
+      ggarrange(a1, NULL, b1, NULL, c1, NULL, NULL, NULL, NULL, NULL,d,NULL, e1,NULL, f1,NULL, NULL, NULL, NULL, NULL,g1,NULL, h1,NULL, i1,nrow = 5, ncol = 5, heights = c(1,-0.1,1,-0.1,1), widths = c(1,-0.0,1,-0.0,1),align = "hv", common.legend = TRUE, legend = "right")
+
+      
+      ggsave("sfc_zon_of.png", width = 11, height = 4)
 
 ```
 
@@ -607,7 +1607,7 @@ b_cstar_tref <- function(df) {
   return(df)
   
 }
-
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_118_Gruber_gam/data/"
 lm_best_target <- read_csv(paste(path_version_data,
                                  "lm_best_target.csv",
                                  sep = ""))
@@ -632,8 +1632,8 @@ GLODAP <- GLODAP %>%
     sal,
     temp,
     aou,
-    oxygen,
-   # nitrate,
+   # oxygen,
+    nitrate,
     silicate,
     phosphate,
     phosphate_star,
@@ -649,9 +1649,9 @@ lm_best_plot <- lm_best_target %>%
 # fit all MLR models
 #  for (i_basin in unique(GLODAP$basin)) {
 #    for (i_era in unique(GLODAP$era)) {
-#i_basin <- unique(GLODAP$basin)[2]
-i_basin <- c("Indo-Pacific", "SO")
-i_era   <- unique(GLODAP$era)[3]
+i_basin <- unique(GLODAP$basin)[2]
+#i_basin <- c("Indo-Pacific", "SO")
+i_era   <- unique(GLODAP$era)[2]
 #i_era   <- c("1982-1999", "2000-2012")
 print(i_basin)
 print(i_era)
@@ -660,7 +1660,7 @@ GLODAP_basin_era <- GLODAP %>%
   filter(basin == i_basin, era == i_era)
 
 #      for (i_gamma_slab in unique(GLODAP_basin_era$gamma_slab)) {
-i_gamma_slab <- unique(GLODAP_basin_era$gamma_slab)[7]
+i_gamma_slab <- unique(GLODAP_basin_era$gamma_slab)[4]
 print(i_gamma_slab)
 
 GLODAP_basin_era_slab <- GLODAP_basin_era %>%
@@ -692,22 +1692,29 @@ print(
   ggplot(cstar_tref, aes(lat, cstar_tref_residual)) +
     geom_bin2d(binwidth = 1) +
     scale_fill_viridis_c(
-      option = "magma",
-      direction = -1,
+      option = "viridis",
+     # direction = -1,
       trans = "log10"
     ) +
     ylim(-15, 15) +
-    geom_vline(xintercept = -35) +
-    # facet_wrap(~ predictors, ncol = 2) +
+   # geom_vline(xintercept = -35) +
+     facet_wrap(~ predictors, ncol = 2) +
     labs(
-      x = expression(latitude ~ (degree * N)),
-      y = expression(C[t[ref]] ^ "*" ~ residual),
-      #subtitle = "(c) Era: 1982-1999"
-      subtitle = "(d) Era: 2000-2009"
-    )
-)
+      x = expression(Latitude ~ (degree * N)),
+      y = expression(C[t[ref]] ^ "*" ~ residual~(mu * mol ~ kg ^ {-1})),
+      subtitle = "2 Region | Era: 2000-2009"
+      #subtitle = "(d) Era: 2000-2009"1982-1999
+    ) +
+  theme(
+    strip.text = element_text(size = 16),
+    axis.title=element_text(size = 16.5),
+    axis.text=element_text(size = 12),
+    legend.text = element_text(size = 12),
+    legend.title = element_text(size = 16.5),
+    plot.subtitle = element_text(size = 16.5)))
 
-ggsave("residual_e2_rso.png")
+#ggsave("residual_e2_rso.png", width = 6.35, height = 4.18)
+ggsave("residual_e2_r2_all.png", width = 11, height = 15)
 
 # calculate mean residual -35~-40
 cstar_tref1 <- cstar_tref %>%
@@ -786,8 +1793,8 @@ GLODAP <- GLODAP %>%
     sal,
     temp,
     aou,
-    oxygen,
-   # nitrate,
+   # oxygen,
+    nitrate,
     silicate,
     phosphate,
     phosphate_star,
@@ -862,7 +1869,7 @@ cstar_tref[,'rmse']=round(cstar_tref[,'rmse'], 3)
 cstar_tref %>%
   ggplot(aes(as.factor(rmse),
              cstar_tref_residual)) +
-  geom_boxplot(fill = "#5499C7") +
+  geom_boxplot(fill = "#1F618D") +
   labs(#subtitle = "(a) Era: 1982-1999",
        subtitle = "(b) Era: 2000-2009",
        x = expression(RMSE ~ 
@@ -874,8 +1881,8 @@ cstar_tref %>%
 ggsave("ref_res_rmse_e2.png")
 
 
-#red: #CD6155
-#blue: #5499C7
+#red: #B03A2E
+#blue: #1F618D
 
 # ggsave(
 #   plot = residual,
@@ -898,6 +1905,8 @@ ggsave("ref_res_rmse_e2.png")
 
 ```{r bias_rmse}
 
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/v_XXX_9pre_vif3000000_m10_rmse_gamma/data/"
+
 # read in required files
 predictors <-
   read_csv(paste(path_version_data,
@@ -910,8 +1919,9 @@ lm_best <-
                  "lm_best.csv",
                  sep = "")) %>%
   mutate(rmse_mean = rmse_sum / 2,
-         aic_mean = aic_sum / 2) %>%
-  select(basin, gamma_slab, eras, model, rmse_mean, aic_mean)
+         aic_mean = aic_sum / 2,
+         rank_mean = rank_sum / 2) %>%
+  select(basin, gamma_slab, eras, model, rmse_mean, aic_mean, rank_mean)
 
 lm_best_cant <-
   read_csv(paste(path_version_data,
@@ -964,29 +1974,34 @@ cant_bias <- cant_bias %>%
   select(-layer_thickness, -surface_area)
 
 cant_bias_slab <- cant_bias %>%
-  group_by(eras, basin, gamma_slab, model, rmse_mean, aic_mean) %>%
+  group_by(eras, basin, gamma_slab, model, rmse_mean, aic_mean, rank_mean) %>%
   summarise(cant_pos_bias = sum(cant_pos_bias_grid)) %>%
   ungroup()
 
 # plot for bias with rmse
-ggplot(data = cant_bias_slab,
+a <- ggplot(data = cant_bias_slab %>%
+         filter(eras == unique(cant_bias_slab$eras)[2]),
        aes(rmse_mean, cant_pos_bias, col = gamma_slab)) +
-  geom_point() +
-  scale_color_viridis_d(name = "Gamma slabs") +
-  guides(col = guide_legend(ncol = 2)) +
-  theme(legend.title = element_text(size = 9),
-        legend.text = element_text(size = 6.5),
-    legend.position = c(0.84, 0.81),
-        legend.key.size = unit(0.3, "cm"),
-        legend.key.width = unit(0.2,"cm"),
-        legend.background = element_rect(fill = "lightgray")) +
-  xlim(0, 7) +
-#  ylim(0, 1) +
-  facet_grid(basin ~ eras) +
+  geom_point(size=2) +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+  guides(col = guide_legend(ncol = 1)) +
+  theme(
+    strip.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11.5),
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 11.5),
+    legend.key.height = unit(1,"cm")
+  ) +
+  #xlim(0, 7) +
+  ylim(-0.5, 1) +
+  facet_grid(.~basin ) +
   labs(
     x = expression(RMSE ~ (mu * mol ~ kg ^ "-1")),
     y = "Bias (Pg C)"
   )
+a
 
 # sum of all mean bias for each slab and basin
 cant_bias_slab_mean <- cant_bias_slab %>%
@@ -1001,24 +2016,156 @@ cant_bias_slab_mean_sum <- cant_bias_slab_mean %>%
 #### The sum of mean bias is smaller than the carbon budget calculations
 
 # plot for bias with AIC
-ggplot(data = cant_bias_slab,
+b <- ggplot(data = cant_bias_slab %>%
+         filter(eras == unique(cant_bias_slab$eras)[2]),
        aes(aic_mean, cant_pos_bias, col = gamma_slab)) +
-  geom_point() +
-  scale_color_viridis_d(name = "Gamma slabs") +
-  guides(col = guide_legend(ncol = 2)) +
-  theme(legend.title = element_text(size = 9),
-        legend.text = element_text(size = 6.5),
-    legend.position = c(0.84, 0.81),
-        legend.key.size = unit(0.3, "cm"),
-        legend.key.width = unit(0.2,"cm"),
-        legend.background = element_rect(fill = "lightgray")) +
-  xlim(0, 60000) +
-#  ylim(0, 1) +
-  facet_grid(basin ~ eras) +
+  geom_point(size=2) +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+  guides(col = guide_legend(ncol = 1)) +
+  theme(
+    strip.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11.5),
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 11.5),
+    legend.key.height = unit(1,"cm")
+  ) +
+  #xlim(0, 70000) +
+  ylim(-0.5, 1) +
+  facet_grid(. ~basin) +
   labs(
     x = "AIC",
     y = "Bias (Pg C)"
   )
+b
+
+# plot for bias with AIC
+c <- ggplot(data = cant_bias_slab %>%
+         filter(eras == unique(cant_bias_slab$eras)[2]),
+       aes(rank_mean, cant_pos_bias, col = gamma_slab)) +
+  geom_point(size = 2) +
+  scale_color_viridis_d(name = expression(gamma~slabs), direction = -1) +
+  guides(col = guide_legend(ncol = 1)) +
+  theme(
+    strip.text = element_text(size = 14),
+    axis.title = element_text(size = 14),
+    axis.text = element_text(size = 11.5),
+    legend.position = "right",
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 11.5),
+    legend.key.height = unit(1,"cm")
+  ) +
+  #xlim(0, 70000) +
+  ylim(-0.5, 1) +
+  facet_grid(. ~basin) +
+  labs(
+    x = "Rank",
+    y = "Bias (Pg C)"
+  )
+c
+ggsave("bias_rank.png", width = 8, height = 3.6)
+
+library(ggpubr)
+ggarrange(a, b, c, nrow = 3, ncol = 1, align = "hv", common.legend = TRUE, legend = "right")
+
+ggsave("bias_3_cre.png", width = 8, height = 11)
 
 ```
 
+
+# Reconstructed inventories with different VIF
+
+```{r inv_diff_vif}
+
+library(tibble)
+a <- tibble(
+  VIF = c(500, 200, 100, 50, 30, 25, 20, 15, 10), 
+  bias = c(1.3,1.3,1.3,1.3,1.4,1.5,1.6,1.6,2.1),
+#  cant = c(5.5,5.5,5.5,5.7,5.7,5.8,6.3),
+  name = "Atlantic"
+)
+
+b <- tibble(
+  VIF = c(500, 200, 100, 50, 30, 25, 20, 15, 10), 
+  bias = c(2.9,3.2,3.5,3.4,3.5,3.4,2.8,3.0,2.6),
+#  cant = c(11.7,11.9,11.7,12.2,12.2,11.8,11.5),
+  name = "Pacific"
+)
+
+c <- tibble(
+  VIF = c(500, 200, 100, 50, 30, 25, 20, 15, 10), 
+  bias = c(-1.7,-1.3,-1.1,-0.6,-0.7,-0.4,-0.3,-0.2,0.5),
+ # cant = c(3.5,3.8,4.3,4.3,4.6,4.7,5.6),
+  name = "Indian"
+)
+
+d <- tibble(
+  VIF = c(500, 200, 100, 50, 30, 25, 20, 15, 10), 
+  bias = c(2.5,3.2,3.7,4.1,4.2,4.5,4.1,4.4,5.2),
+  #cant = c(20.7,21.2,21.5,22.2,22.5,22.3,23.4),
+  name = "Global"
+)
+
+e <- bind_rows(a,b,c,d)
+e$name_f = factor(e$name, levels=c("Atlantic", "Pacific", "Indian", "Global"))
+
+f <- ggplot(e, aes(1/VIF, bias, fill = factor(name))) +
+              geom_point(size = 2.1, shape = 21) +
+  scale_fill_viridis_d(name = "  Basin",
+                        direction = -1) +
+  labs(x = expression(1/VIF),
+       y = expression(Delta*C[ant] ~ inventory ~ bias ~ (Pg ~ C))) +
+ # facet_grid(.~name_f,scales = "free") +
+  theme(axis.title = element_text(size = 11),
+        axis.text.x = element_text(size = 9),
+        axis.text.y = element_text(size = 9),
+        legend.title = element_text(size = 11),
+        legend.text = element_text(size = 9))
+
+f
+
+ggsave("inv_basin_vif.png")
+```
+
+# delta Cant budgets plots
+
+```{r cant_budget_all_depth}
+
+# need cant_inv_budget file
+cant_inv_budget %>%
+  rename(R = cant_pos_JDM, M = cant_pos_M) %>%
+  select(basin_AIP, eras, inv_depth, R, M) %>%
+  filter(eras == unique(cant_inv_budget$eras)[2]) %>%
+  pivot_longer(cols = c(R, M), names_to = "estimate", values_to = "cant_pos") %>%
+  mutate(estimate_f = factor(estimate, levels = c("R", "M"))) %>%
+  ggplot(aes(estimate_f, cant_pos, fill = basin_AIP)) +
+  scale_fill_brewer(palette = "Dark2", name = "Basin") +
+  geom_col() +
+  facet_grid(. ~ inv_depth, scales = "free_y") +
+  labs(x = "Estimate",
+       y = expression(Delta * C[ant] ~ budget ~ (Pg ~ C))) +
+  theme(
+    strip.text = element_text(size = 13),
+    axis.title = element_text(size = 13),
+    axis.text = element_text(size = 11),
+    legend.text = element_text(size = 11),
+    legend.title = element_text(size = 13)
+  )
+
+ggsave("cb_all_depth.png", width = 8, height = 4)
+
+```
+
+
+```{r cant_budget_attribution}
+
+a <- tibble(
+  VIF = c(200, 100, 50, 30, 25, 20, 10), 
+  bias = c(1.3,1.3,1.3,1.4,1.5,1.6,2.1),
+#  cant = c(5.5,5.5,5.5,5.7,5.7,5.8,6.3),
+  name = "Atlantic"
+)
+
+
+```
