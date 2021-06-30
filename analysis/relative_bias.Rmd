@@ -1,0 +1,658 @@
+---
+title: "Relative Bias"
+author: "Jens Daniel Müller and Donghe Zhu"
+date:  "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  workflowr::wflow_html:
+    number_sections: true
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+editor_options:
+  chunk_output_type: console
+---
+
+```{r parent, child = "/nfs/kryo/work/jenmueller/emlr_cant/utilities/setup.Rmd"}
+# this chunk runs the code stored in setup.Rmd
+# if required, please refer to instructions given here:
+# https://jdblischak.github.io/workflowr/articles/wflow-07-common-code.html
+```
+
+```{r read_params_local, include = FALSE}
+
+Version_ID <- "v_XXX"
+
+```
+
+```{r define_paths, include = FALSE}
+
+path_model <-
+  paste(path_root, "/model/", sep = "")
+
+path_preprocessing    <-
+  paste(path_model, "preprocessing/", sep = "")
+
+params_local     <-
+  read_rds(
+    paste(
+      "/home/donzhu/Thesis/emlr_cant/model/emlr_mod_v_XXX/data/auxillary/",
+      "params_local.rds",
+      sep = ""
+    )
+  )
+
+path_version_data     <-
+  paste(path_model,
+        Version_ID,
+        "/data/",
+        sep = "")
+
+path_version_figures  <-
+  paste(path_model,
+        Version_ID,
+        "/figures/",
+        sep = "")
+
+```
+
+
+```{r load_libraries_specific, include = FALSE}
+library(scales)
+library(marelac)
+library(gt)
+library(pals)
+library(RColorBrewer)
+```
+
+# Inventory maps
+
+## Cant positive relative bias
+
+```{r read_cant_inv_file}
+
+# NorESM GV standard
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/data_donghe_ra/data_NorESM/v_XXX_GV_2021_2R_ann_standard/data/"
+
+# # CESM GV standard
+# path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/data_donghe_ra/data_NorESM/v_XXX_GV_2021_2R_ann_standard_CESM/data/"
+
+cant_inv_JDM <-
+  read_csv(paste(path_version_data,
+                 "cant_inv.csv",
+                 sep = ""))
+
+cant_inv_M <-
+  read_csv(paste(path_version_data,
+                  "cant_inv_M.csv", sep = ""))
+
+```
+
+```{r join_M_and_JDM_inventories}
+
+# add estimate label
+cant_inv_long <- bind_rows(cant_inv_JDM %>%  mutate(estimate = "JDM"),
+                           cant_inv_M %>%  mutate(estimate = "M"))
+
+# pivot to wide format
+cant_inv_wide <- cant_inv_long %>%
+  pivot_wider(names_from = estimate, values_from = cant_pos_inv:cant_inv) %>%
+  drop_na()
+
+# calculate offset
+cant_inv_wide <- cant_inv_wide %>%
+  mutate(
+    cant_pos_inv_offset = cant_pos_inv_JDM - cant_pos_inv_M,
+    cant_pos_inv_offset_relative = cant_pos_inv_offset / cant_pos_inv_M,  # for relative bias
+    cant_inv_offset = cant_inv_JDM - cant_inv_M,
+    estimate = "JDM - M"
+  )
+
+# restrict to the standard inventory depth
+cant_inv_long <- cant_inv_long %>%
+  filter(inv_depth == params_global$inventory_depth_standard)
+
+cant_inv_wide <- cant_inv_wide %>%
+  filter(inv_depth == params_global$inventory_depth_standard)
+
+```
+
+```{r cant_pos_inventory_map, fig.asp=0.5}
+
+i_eras <- "2000-2009 --> 2010-2019"
+
+df1 <-
+  cant_inv_long %>% filter(estimate == unique(cant_inv_long$estimate)[1], eras == i_eras)
+df2 <-
+  cant_inv_long %>% filter(estimate == unique(cant_inv_long$estimate)[2], eras == i_eras)
+
+var = "cant_pos_inv"
+breaks <- c(0,2,4,6,8,10,Inf)  #relative bias NorESM
+var <- sym(var)
+breaks_n <- length(breaks) - 1
+
+df1 <- df1 %>%
+#  mutate(lon = if_else(lon > 180, lon - 360, lon)) %>%
+  mutate(var_int = cut(!!var,
+                       breaks,
+                       right = FALSE))
+df2 <- df2 %>%
+#  mutate(lon = if_else(lon > 180, lon - 360, lon)) %>%
+  mutate(var_int = cut(!!var,
+                       breaks,
+                       right = FALSE))
+
+library(pals)
+
+section <- map +
+  scale_fill_manual(
+    values = as.vector(ocean.deep(6)),
+    drop = FALSE,
+    name = expression(atop(Delta * C[ant],
+                           (mol ~ m ^ {
+                             -2
+                           })))
+  ) +
+  guides(fill = guide_colorsteps(barheight = unit(5.5, "cm"))) +
+  theme(
+    legend.text = element_text(size = 12.5),
+    legend.title = element_text(size = 16),
+    plot.subtitle = element_text(size = 16),
+    axis.text = element_text(size = 12.5)
+  )
+
+a <- section +
+  geom_raster(data = df1,
+              aes(lon, lat, fill = var_int)) +
+  labs(subtitle = "(a) eMLR reconstruction") 
+
+a
+
+b <- section +
+  geom_raster(data = df2,
+              aes(lon, lat, fill = var_int)) +
+  labs(subtitle = "(b) Model truth") 
+
+b
+
+########## Offset
+
+breaks <-
+  c(-Inf,-3,-2,-1, 0, 1, 2, 3, Inf)  # relative bias NorESM
+
+library(RColorBrewer)
+
+section_o <- map +
+  scale_fill_manual(
+    values = colorRampPalette(brewer.pal(13, "RdBu"))(17)[c(16, 14, 12, 10, 8, 6, 4, 2)],
+    # name = expression(atop(Bias ~ Delta * C[ant],
+    #                        (mol ~ m ^ {
+    #                          -2
+    #                        }))),
+    name = "Relative Bias",
+    drop = FALSE
+  ) +
+  theme(
+    legend.text = element_text(size = 12.5),
+    legend.title = element_text(size = 16),
+    plot.subtitle = element_text(size = 16),
+    axis.text = element_text(size = 12.5)
+  ) +
+  guides(fill = guide_colorsteps(barheight = unit(5.5, "cm")))
+
+c <- section_o +
+  geom_raster(data = cant_inv_wide %>% filter(eras == i_eras),
+              aes(lon, lat, fill = cut(
+                !!sym("cant_pos_inv_offset_relative"), breaks
+              ))) +
+  labs(subtitle = "(c) Bias")
+
+c
+
+```
+
+
+# Zonal mean sections
+
+## Cant positive relative bias calculation 1
+
+```{r read_cant_zonal_file}
+
+# NorESM GV standard
+path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/data_donghe_ra/data_NorESM/v_XXX_GV_2021_2R_ann_standard/data/"
+
+# # CESM GV standard
+# path_version_data <- "/nfs/kryo/work/jenmueller/emlr_cant/model/data_donghe_ra/data_NorESM/v_XXX_GV_2021_2R_ann_standard_CESM/data/"
+
+cant_zonal_JDM <-
+  read_csv(paste(path_version_data,
+                 "cant_zonal.csv",
+                 sep = ""))
+
+cant_zonal_JDM <- cant_zonal_JDM %>%
+  select(lat,
+         depth,
+         eras,
+         basin_AIP,
+         gamma_mean,
+         cant_mean,
+         cant_pos_mean,
+         cant_sd,
+         cant_pos_sd)
+
+cant_zonal_M <-
+  read_csv(paste(path_version_data,
+                  "cant_zonal_M", sep = ""))
+
+```
+
+```{r join_cant_zonal}
+
+cant_zonal_JDM_gamma <- cant_zonal_JDM %>%
+  select(lat, depth, eras, basin_AIP, gamma_mean)
+
+cant_zonal_M <- left_join(cant_zonal_JDM_gamma, cant_zonal_M)
+
+rm(cant_zonal_JDM_gamma)
+
+# add estimate label
+cant_zonal_long <- bind_rows(cant_zonal_JDM %>%  mutate(estimate = "JDM"),
+                             cant_zonal_M %>%  mutate(estimate = "M"))
+
+# pivot to wide format
+cant_zonal_wide <- cant_zonal_long %>%
+  pivot_wider(names_from = estimate, values_from = cant_mean:cant_pos_sd) %>%
+  drop_na()
+
+# calculate offset
+cant_zonal_wide <- cant_zonal_wide %>%
+  mutate(
+    cant_pos_mean_offset = cant_pos_mean_JDM - cant_pos_mean_M,
+    cant_pos_mean_offset_relative = if_else(
+      cant_pos_mean_M == 0,
+      NaN,
+      cant_pos_mean_offset / cant_pos_mean_M
+    ),                                              # relative bias
+    cant_mean_offset = cant_mean_JDM - cant_mean_M,
+    estimate = "JDM - M"
+  ) %>%
+  drop_na()
+
+```
+
+```{r cant_pos_zonal_mean_section, fig.asp=0.6}
+
+library(patchwork)
+i_eras <- "2000-2009 --> 2010-2019"
+i_basin_AIP <- "Atlantic"
+# i_basin_AIP <- "Pacific"
+# i_basin_AIP <- "Indian"
+
+p_section_zonal <- function(df,
+                            var = "cant_pos",
+                            var_name = var,
+                            col = "continuous",
+                            gamma = "gamma_mean",
+                            plot_slabs = "y",
+                            drop_slabs = 1,
+                            legend_title = expression(atop(Bias ~ Delta * C[ant, pos],
+                                                           (mu * mol ~ kg ^ {
+                                                             -1
+                                                           }))),
+                            subtitle_text = "") {
+  var <- sym(var)
+  gamma <- sym(gamma)
+  
+  # plot base section
+  section <- df %>%
+    ggplot() +
+    guides(fill = guide_colorsteps(barheight = unit(5.5, "cm"))) +
+    scale_y_reverse() +
+    scale_x_continuous(breaks = seq(-100, 100, 20),
+                       limits = c(-85, 85))
+  
+  # plot layer for chose color scale (default continuous)
+  if (col == "continuous") {
+    section <- section +
+      geom_contour_filled(aes(lat, depth, z = !!var),
+                          breaks = c(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, Inf)) +
+      scale_fill_manual(
+        values = as.vector(ocean.deep(13)),
+        drop = FALSE,
+        name = expression(atop(Delta * C[ant],
+                               (mu * mol ~ kg ^ {
+                                 -1
+                               })))
+      ) +
+      theme(
+        axis.title = element_text(size = 16.5),
+        axis.text = element_text(size = 11.5),
+        legend.text = element_text(size = 11.5),
+        legend.title = element_text(size = 16.5)
+      )
+  } else {
+    section <- section +
+      # geom_contour_filled(aes(lat, depth, z = !!var),
+      #                     breaks = c(-Inf, -4, -3, -2, -1, 0, 1, 2, 3, 4, Inf)) +
+      geom_contour_filled(
+        aes(lat, depth, z = !!var),
+        breaks = c(-Inf, -2.5, -2, -1.5, -1, -0.5, 0, 0.5, 1, 1.5, 2, 2.5, Inf)
+      ) +
+      scale_fill_manual(
+        values = colorRampPalette(brewer.pal(11, "RdBu"))(25)[c(24, 22, 20, 18, 16, 14, 12, 10, 8, 6, 4, 2)],
+        # values = colorRampPalette(brewer.pal(11, "RdBu"))(21)[c(20, 18, 16, 14, 12, 10, 8, 6, 4, 2)],
+        drop = FALSE,
+        name = "Relative Bias"
+        # name = expression(atop(Bias ~ Delta * C[ant],
+        #                        (mu * mol ~ kg ^ {
+        #                          -1
+        #                        })))
+      ) +
+      theme(
+        axis.title = element_text(size = 16.5),
+        axis.text = element_text(size = 11.5),
+        legend.text = element_text(size = 11.5),
+        legend.title = element_text(size = 16.5)
+      )
+    
+  }
+  
+  
+  # plot isoneutral density lines if chosen (default yes)
+  if (plot_slabs == "y") {
+    # select slab breaks for plotted basin
+    if (i_basin_AIP == "Atlantic") {
+      slab_breaks <- params_local$slabs_Atl
+    } else {
+      slab_breaks <- params_local$slabs_Ind_Pac
+    }
+    
+    
+    section <- section  +
+      geom_hline(
+        yintercept = params_local$depth_min,
+        col = "white",
+        linetype = 2
+      ) +
+      geom_contour(aes(lat, depth, z = !!gamma),
+                   breaks = slab_breaks,
+                   col = "black") +
+      geom_text_contour(
+        aes(lat, depth, z = !!gamma),
+        breaks = slab_breaks,
+        col = "black",
+        skip = drop_slabs
+      )
+    
+  }
+  
+  # cut surface water section
+  surface <-
+    section +
+    coord_cartesian(expand = 0,
+                    ylim = c(500, 0)) +
+    labs(y = "Depth (m)",
+         subtitle = subtitle_text) +
+    theme(
+      axis.title.x = element_blank(),
+      axis.text.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      plot.subtitle = element_text(size = 16.5)
+    )
+  
+  # cut deep water section
+  deep <-
+    section +
+    coord_cartesian(expand = 0,
+                    ylim = c(params_global$plotting_depth, 500)) +
+    labs(x = expression(Latitude ~ (degree * N)), y = "Depth (m)")
+  
+  # combine surface and deep water section
+  surface / deep +
+    plot_layout(guides = "collect")
+  
+}
+
+a <- p_section_zonal(
+  df = cant_zonal_long %>%
+    filter(
+      basin_AIP == i_basin_AIP,
+      estimate == unique(cant_zonal_long$estimate)[1],
+      eras == i_eras
+    ),
+  var = "cant_pos_mean",
+  subtitle_text = "(a) eMLR reconstruction    Atl"
+  #subtitle_text = "(c)                                Indian"
+  #subtitle_text = "(a) VIF: 50  M: 10                        Indian"
+  # subtitle_text = "(a) Standard"
+)
+
+a
+
+#ggsave("c.png", width = 5.4, height = 3.65)
+
+b <- p_section_zonal(
+  df = cant_zonal_long %>%
+    filter(
+      basin_AIP == i_basin_AIP,
+      estimate == unique(cant_zonal_long$estimate)[2],
+      eras == i_eras
+    ),
+  var = "cant_pos_mean",
+  subtitle_text = "(d) Model truth"
+  #subtitle_text = "(b) "
+)
+
+b
+
+# ggsave("f.png", width = 5.4, height = 3.65)
+
+    
+########### Offset
+
+i_basin_AIP <- "Atlantic"
+# i_basin_AIP <- "Pacific"
+# i_basin_AIP <- "Indian"
+
+p_section_zonal(
+  df = cant_zonal_wide %>%
+    filter(basin_AIP == i_basin_AIP,
+           eras == i_eras),
+  var = "cant_pos_mean_offset_relative",
+  col = "divergent",
+  #subtitle_text = "(a) Zonal mean bias  Atlantic"
+  #subtitle_text = "(j) Modified + Overlapped"
+  #subtitle_text = "(g) VIF: 10  M: 10       "
+  subtitle_text = "(b)                              Pacific"
+  #subtitle_text = "(f)         "
+)
+
+# ggsave("b1.png", width = 5.4, height = 3.65)
+
+```
+
+## Cant positive relative bias calculation 2 
+
+```{r read_cant_zonal_file_relative2}
+
+cant_JDM <-
+  read_csv(paste(path_version_data,
+                  "cant_3d.csv", sep = "")) %>%
+  select(lon, lat, depth, eras, basin_AIP, cant_JDM = cant_pos, gamma, gamma_slab)
+
+cant_M <-
+  read_csv(paste(path_version_data,
+                  "cant_M.csv", sep = "")) %>%
+  select(lon, lat, depth, eras, basin_AIP, cant_M = cant_pos)
+
+cant_relative_bias <- left_join(cant_JDM, cant_M) %>%
+  mutate(cant_pos_bias_relative = if_else(cant_M == 0, NaN, (cant_JDM - cant_M)/cant_M)) %>%
+  drop_na() %>%
+  arrange(cant_pos_bias_relative)
+  
+# map +
+#   geom_raster(data = cant_relative_bias %>% filter(is.na(cant_pos_bias_relative)), aes(lon, lat, fill = "red"))
+
+m_zonal_mean_section_relative <- function(df) {
+
+  df <- df %>%
+    fselect(lat, depth, eras, basin_AIP, cant_pos_bias_relative, gamma) %>%
+    fgroup_by(lat, depth, eras, basin_AIP) %>% {
+      add_vars(fgroup_vars(.,"unique"),
+               fmean(., keep.group_vars = FALSE) %>% add_stub(pre = FALSE, "_mean"),
+               fsd(., keep.group_vars = FALSE) %>% add_stub(pre = FALSE, "_sd"))
+    }
+
+  return(df)
+
+}
+
+cant_zonal_relative_bias <- m_zonal_mean_section_relative(cant_relative_bias)
+cant_zonal_relative_bias <- m_cut_gamma(cant_zonal_relative_bias, "gamma_mean")
+
+```
+
+```{r cant_pos_zonal_mean_section_relative2, fig.asp=0.6}
+
+library(patchwork)
+i_eras <- "2000-2009 --> 2010-2019"
+
+p_section_zonal <- function(df,
+           var = "cant_pos",
+           var_name = var,
+           col = "continuous",
+           gamma = "gamma_mean",
+           plot_slabs = "y",
+           drop_slabs = 1,
+           legend_title = expression(atop(Bias~Delta * C[ant,pos],
+                                          (mu * mol ~ kg ^ {-1}))),
+           subtitle_text = "") {
+
+    var <- sym(var)
+    gamma <- sym(gamma)
+
+    # plot base section
+    section <- df %>%
+      ggplot() +
+      guides(fill = guide_colorsteps(barheight = unit(6.5, "cm"))) +
+      scale_y_reverse() +
+      scale_x_continuous(breaks = seq(-100, 100, 20),
+                         limits = c(-85,85))
+
+    # plot layer for chose color scale (default continuous)
+    if (col == "continuous") {
+
+      section <- section +
+        geom_contour_filled(aes(lat, depth, z = !!var),
+                            breaks = c(0,1,2,3,4,5,6,7,8,9,10,11,12,Inf)) +
+        scale_fill_manual(values=as.vector(ocean.deep(13)),
+                    drop = FALSE,
+                    name = expression(atop(Delta*C[ant],
+                                                 (mu * mol ~ kg ^ {-1})))) +
+        theme(
+          axis.title = element_text(size = 16.5),
+          axis.text = element_text(size = 11.5),
+        legend.text = element_text(size = 11.5),
+        legend.title = element_text(size = 16.5))
+    } else {
+
+      section <- section +
+        # geom_contour_filled(aes(lat, depth, z = !!var),
+        #                     breaks = c(-Inf, -4, -3, -2, -1, 0, 1, 2, 3, 4, Inf)) +
+        geom_contour_filled(aes(lat, depth, z = !!var),
+                            breaks = seq(-1, 1, 0.1)) +
+        scale_fill_manual(
+         values = colorRampPalette(brewer.pal(11, "RdBu"))(41)[c(40,38,36,34,32,30,28,26,24,22,20,18,16,14,12,10,8,6,4,2)],
+          # values = colorRampPalette(brewer.pal(11, "RdBu"))(21)[c(20, 18, 16, 14, 12, 10, 8, 6, 4, 2)],
+          drop = FALSE,
+          name = "Relative Bias"
+        ) +
+        theme(
+          axis.title = element_text(size = 16.5),
+          axis.text = element_text(size = 11.5),
+        legend.text = element_text(size = 11.5),
+        legend.title = element_text(size = 16.5))
+
+    }
+
+
+    # plot isoneutral density lines if chosen (default yes)
+    if (plot_slabs == "y") {
+
+      # select slab breaks for plotted basin
+      if (i_basin_AIP == "Atlantic") {
+        slab_breaks <- params_local$slabs_Atl
+      } else {
+        slab_breaks <- params_local$slabs_Ind_Pac
+      }
+
+
+      section <- section  +
+        geom_hline(yintercept = params_local$depth_min,
+                   col = "white",
+                   linetype = 2) +
+        geom_contour(aes(lat, depth, z = !!gamma),
+                     breaks = slab_breaks,
+                     col = "black") +
+        geom_text_contour(
+          aes(lat, depth, z = !!gamma),
+          breaks = slab_breaks,
+          col = "black",
+          skip = drop_slabs
+        )
+
+    }
+
+    # cut surface water section
+    surface <-
+      section +
+      coord_cartesian(
+        expand = 0,
+        ylim = c(500, 0)
+      ) +
+      labs(y = "Depth (m)",
+           subtitle = subtitle_text) +
+      theme(
+        axis.title.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        plot.subtitle=element_text(size = 16.5)
+      )
+
+    # cut deep water section
+    deep <-
+      section +
+      coord_cartesian(
+        expand = 0,
+        ylim = c(params_global$plotting_depth, 500)
+      ) +
+      labs(x = expression(Latitude~(degree*N)), y = "Depth (m)")
+
+    # combine surface and deep water section
+    surface / deep +
+      plot_layout(guides = "collect")
+
+}
+   
+########### relative Offset
+  
+i_basin_AIP <- "Atlantic"   
+# i_basin_AIP <- "Pacific"
+# i_basin_AIP <- "Indian"
+
+
+p_section_zonal(
+  df = cant_zonal_relative_bias %>%
+    filter(basin_AIP == i_basin_AIP,
+           eras == i_eras),
+  var = "cant_pos_bias_relative_mean",
+  col = "divergent",
+  subtitle_text = "(a) NorESM  Atlantic"
+  #subtitle_text = "(j) Modified + Overlapped"
+  #subtitle_text = "(g) VIF: 10  M: 10       "
+  #subtitle_text = "(b)                              Pacific"
+  #subtitle_text = "(c)         "
+)
+
+# ggsave("b.png", width = 5.4, height = 3.65)
+     
+```

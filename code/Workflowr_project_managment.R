@@ -14,11 +14,10 @@ wflow_publish(here::here(
   "analysis",
   c(
     "index.Rmd",
-    "preprocessing.Rmd",
-    "emlr.Rmd"
+    "relative_bias.Rmd"
   )
 ),
-message = "plot for thesis",
+message = "plot for relative bias",
 republish = TRUE)
 
 

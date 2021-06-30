@@ -1,16 +1,10 @@
-name: Cant_eMLR
+name: emlr_mod_analysis
 output_dir: ../docs
 navbar:
-  title: eMLR mod analysis
+  title: Analysis
   left:
-  - text: Config
-    menu:
-    - text: Parameterization
-      href: config_parameterization_local.html
-  - text: Analysis
-    menu:
-    - text: Zonal mean sections
-      href: analysis_zonal_mean_sections.html
+  - text: Relative bias
+    href: relative_bias.html
   right:
   - icon: fa-github
     text: Source code
@@ -22,7 +16,7 @@ output:
   workflowr::wflow_html:
     toc: yes
     toc_float:
-      collapsed: no
+      collapsed: false
     toc_depth: 3
     theme: flatly
     code_folding: hide
